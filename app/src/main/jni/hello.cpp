@@ -225,7 +225,6 @@ std::string get_url(const char* site) {
         if (!equals(url, site)) return std::string(OBFUSCATE("0"));
         curl_easy_cleanup(curl);
     }
-	//logger->append_arg(OBFUSCATE("curl request\ntarget : %s\nresponse : %s"), site, AESDecrypt(datastr.c_str()).c_str());
     return datastr;
 }
 
@@ -254,7 +253,6 @@ std::string send_header(const char* site, const char* content) {
         curl_easy_cleanup(curl);
         curl_slist_free_all(chunk);
     }
-	//logger->append_arg(OBFUSCATE("curl request\ntarget : %s\nresponse : %s"), site, AESDecrypt(datastr.c_str()).c_str());
     return datastr;
 }
 
@@ -277,10 +275,8 @@ std::string CalcMD5(std::string s) {
 
 std::string CalcSHA256(std::string s) {
     std::string result;
-
     unsigned char hash[SHA256_DIGEST_LENGTH];
     char tmp[4];
-
     SHA256_CTX sha256;
     SHA256_Init(&sha256);
     SHA256_Update(&sha256, s.c_str(), s.length());
@@ -300,12 +296,10 @@ struct MemoryStruct {
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
     auto *mem = (struct MemoryStruct *) userp;
-
     mem->memory = (char *) realloc(mem->memory, mem->size + realsize + 1);
     if (mem->memory == nullptr) {
         return 0;
     }
-
     memcpy(&(mem->memory[mem->size]), contents, realsize);
     mem->size += realsize;
     mem->memory[mem->size] = 0;
@@ -444,113 +438,6 @@ std::string Login(const char *user_key) {
     free(chunk.memory);
     return bValid ? "OK" : errMsg;
 }
-
-/*
-
-int (*old_glGetUniformLocation)(GLuint, const GLchar *);
-GLint new_glGetUniformLocation(GLuint program, const GLchar *name) {
-	//LOGI("Another One Shader Found : %s", name);
-    return old_glGetUniformLocation(program, name);
-}
-void (*old_glDrawElements)(GLenum mode, GLsizei count, GLenum type, const void *indices);
-void new_glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices) {
-    old_glDrawElements(mode, count, type, indices);
-	GLint currProgram;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
-	GLint id = old_glGetUniformLocation(currProgram, OBFUSCATE("_BumpMap"));
-	GLint id2 = old_glGetUniformLocation(currProgram, OBFUSCATE("_MainTex"));
-	/*if (id2 != -1 && id == -1) {
-		if (mode != GL_TRIANGLES || count < 1000) return;
-		if (night) {
-			glBlendColor(GLfloat(1 - float(nightvalr) / 200), GLfloat(1 - float(nightvalg) / 200), GLfloat(1 - float(nightvalb) / 200), 0);
-			glColorMask(1, 1, 1, 1);
-			glEnable(GL_BLEND);
-			glBlendFuncSeparate(GL_CONSTANT_COLOR, GL_CONSTANT_ALPHA, GL_ONE, GL_ZERO);
-			old_glDrawElements(GL_TRIANGLES, count, type, indices);
-		}
-	}
-    if (mode != GL_TRIANGLES || count < 1500) return;
-    {
-        if (id == -1) return;
-        if (chams) {
-           glDepthRangef(1, 0.5);
-           glEnable(GL_BLEND);
-           glBlendFunc(GL_SRC_COLOR, GL_CONSTANT_COLOR);
-           glBlendEquation(GL_FUNC_ADD);
-           glBlendColor(rr, gg, bb, 1.000);
-           glDepthFunc(GL_ALWAYS);
-           old_glDrawElements(GL_TRIANGLES, count, type, indices);
-           glColorMask(rr, gg, bb, 255);
-           glBlendFunc(GL_DST_COLOR, GL_ONE);
-           glDepthFunc(GL_LESS);
-           glDepthMask(true);
-           glDepthMask(false);
-           glBlendColor(0.0, 0.0, 0.0, 0.0);
-        }
-        if (wire) {
-            glEnable(GL_CULL_FACE);
-            glCullFace(GL_BACK);
-            glEnable(GL_BLEND);
-            glDepthFunc(GL_ALWAYS);
-            glDepthMask(false);
-            glBlendFunc(GL_CONSTANT_COLOR, GL_ZERO);
-            glColorMask(rr, gg, bb, 1.0f);
-            glEnable(GL_POLYGON_OFFSET_FILL);
-            glPolygonOffset(-2.5f, -2.5f);
-            glLineWidth(linewidth);
-            old_glDrawElements(GL_LINE_LOOP, count, type, indices);
-            glDepthFunc(GL_LESS);
-            glBlendFunc(GL_ONE, GL_ZERO);
-            glColorMask(rr, gg, bb, 0.8f);
-            glDisable(GL_POLYGON_OFFSET_FILL);
-        }
-        if (glow) {
-            glEnable(GL_BLEND);
-            glLineWidth(linewidth);
-            glDepthMask(true);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            glBlendColor(0.0, 0.0, 0.0, 0.1);
-            glDepthFunc(0x0207);
-            old_glDrawElements(GL_TRIANGLES, count, type, indices);
-            glColorMask(rr, gg, bb, 255);
-            glBlendFunc(GL_DST_COLOR, GL_ONE);
-            glDepthFunc(0x0201);
-            glDepthMask(true);
-            glDepthMask(false);
-            glBlendColor(0.0, 0.0, 0.0, 0.0);
-            old_glDrawElements(GL_LINE_LOOP, count, type, indices);
-        }
-		if (outline) {
-            glDepthRangef(1, 0);
-            glLineWidth(linewidth);
-            glEnable(GL_BLEND);
-            glColorMask(1, 1, 1, 1);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            glBlendFuncSeparate(GL_CONSTANT_COLOR, GL_CONSTANT_ALPHA, GL_ONE, GL_ZERO);
-            glBlendColor(0, 0, 0, 1);
-            old_glDrawElements(GL_TRIANGLES, count, type, indices);
-            glBlendColor(GLfloat(rr/100), GLfloat(gg/100), GLfloat(bb/100), 1);
-            glDepthRangef(1, 0.5);
-            glBlendColor(GLfloat(float(rr)/255), GLfloat(float(gg)/255), GLfloat(float(bb)/255), 1);
-            old_glDrawElements(GL_LINES, count, type, indices);
-        }
-        if (defchams) {
-           glDepthRangef(1, 0.5);
-           glColorMask(rr, gg, bb, 1);
-           glEnable(GL_BLEND);
-           glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-           glBlendEquation(GL_FUNC_ADD);
-           glBlendColor(rr*3.92156863*0.001, gg*3.92156863*0.001, bb*3.92156863*0.001, 1.000);
-        }
-        old_glDrawElements(mode, count, type, indices);
-        glDepthMask(true);
-        glDepthFunc(GL_LESS);
-        glDepthRangef(0.5, 1);
-        glColorMask(1, 1, 1, 1);
-        glDisable(GL_BLEND);
-    }
-}*/
 
 void* myphoton = nullptr;
 void *photon = nullptr;
@@ -1354,39 +1241,6 @@ void gameupdate(void* inst) {
 	errata = true;
 }
 
-Il2CppClass* gclass;
-FieldInfo* ginst;
-
-void gameupdatev() {
-    while (true) {
-        if (!valid(gclass)) continue;
-        if (!valid(ginst)) continue;
-        void* usasruloba;
-        il2cpp_field_static_get_value(ginst, &usasruloba);
-        if (!valid(usasruloba)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            continue;
-        }
-        if (setwp) {
-            void* plrr = *(void**)((uintptr_t)usasruloba + 0x60);
-            if (!valid(plrr)) {
-                setwp = false;
-                continue;
-            }
-            /*void* obj = il2cpp_object_new(WeaponWithSkin);
-            *(int*)((uintptr_t)obj + 0x18) = 0; //Idk
-            *(int*)((uintptr_t)obj + 0x14) = 0; //OwnerId
-            *(int*)((uintptr_t)obj + 0x10) = wid; //WeaponId
-            *(int*)((uintptr_t)obj + 0x1C) = sid; //SkinId*
-            logger->append(((Il2CppObject*)plrr)->klass->name);*/
-            SetWeaponID(plrr, wid);
-            setwp = false;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-    //return old_gameupdate(usasruloba);
-}
-
 ///
 
 MemoryPatch chamsbp;
@@ -1394,60 +1248,6 @@ MemoryPatch chamsbp;
 void* (*GetBytes)(void*, monoString*);
 monoString* (*GetString)(void*, void*);
 void* (*DefaultEncoding)();
-
-static Map unity{};
-static Map il2cpp{};
-static Map shared{};
-static Map egl{};
-static Map gles{};
-
-static void* unitySrc{};
-static void* il2cppSrc{};
-static void* sharedSrc{};
-static void* eglSrc{};
-static void* glesSrc{};
-
-static void* (*o184DB0)(void* dest, void* src, size_t n);
-static void* h184DB0(void* dest, void* src, size_t n) {
-	const uintptr_t mapSrc = reinterpret_cast<uintptr_t>(src);
-	if (mapSrc > unity.start && mapSrc < unity.end) {
-		src = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(unitySrc) + mapSrc - unity.start);
-	} else if (mapSrc > il2cpp.start && mapSrc < il2cpp.end) {
-		src = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(il2cppSrc) + mapSrc - il2cpp.start);
-	} else if (mapSrc > shared.start && mapSrc < shared.end) {
-		src = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(sharedSrc) + mapSrc - shared.start);
-	} else if (mapSrc > egl.start && mapSrc < egl.end) {
-		src = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(eglSrc) + mapSrc - egl.start);
-	} else if (mapSrc > gles.start && mapSrc < gles.end) {
-		src = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(glesSrc) + mapSrc - gles.start);
-	}
-	return o184DB0(dest, src, n);
-}
-
-typedef void* (*sub_8412DC_t)(size_t* a1);
-sub_8412DC_t orig_sub_8412DC;
-
-void* fake_sub_8412DC(size_t* a1) {
-	void* my_buffer = malloc(a1[0]);
-	if (!my_buffer) {
-		return NULL;
-	}
-
-	if (a1[3]) memcpy(my_buffer, (void*)a1[3], a1[0]);
-	else memset(my_buffer, 0, a1[0]);
-	return my_buffer;
-}
-
-typedef int64_t (*Unwind_GetRR_t)(int64_t, int64_t);
-static Unwind_GetRR_t orig_Unwind_GetRR = NULL;
-
-static int64_t fake_Unwind_GetRR(int64_t a1, int64_t a2) {
-	//logger->append_arg("[+] Hooked Unwind_GetRR! Args: a1 = %llx, a2 = %llx", a1, a2);
-	if (orig_Unwind_GetRR) {
-		return orig_Unwind_GetRR(a1, a2);
-	}
-	return 0;
-}
 
 void mnthread() {
     LOGI("PART 1");
@@ -1516,7 +1316,6 @@ void mnthread() {
         "Photon3Unity3D"
     };
     LOGI("PASSED ARRAY");
-    //logger->append_arg("thread current %p %p", il2cpp_thread_current, il2cpp_thread_attach);
     
     if (!il2cpp_thread_current()) il2cpp_thread_attach(il2cpp_domain_get());
     LOGI("PASSED THROUGHT THREAD CURRENT %p", il2cpp_thread_current);
@@ -1711,8 +1510,6 @@ void mnthread() {
     
     GetPlayerHealth = (int (*)(void *))(il2cpp_base + 0x28763B4);
     GetHealthPhoton = (int (*)(void *))(il2cpp_base + 0x24729AC);
-	
-	//MemoryPatch::createWithHex((il2cpp_base + 0x292D0B0), _("6B 08 01 1F")).Modify();
     
     if (il2cpp_thread_current()) il2cpp_thread_detach(il2cpp_thread_current());
     
@@ -1721,15 +1518,6 @@ void mnthread() {
     b3.Restore();
     b4.Restore();
     b5.Restore();*/
-	
-	//riru_hide(_("libshared.so"));
-	//riru_hide(_("libunity.so"));
-    //std::thread(pauseproc, getpid()).detach();
-	//usleep(1000000 * 1.65f);
-    //std::thread(resumeproc, getpid()).detach();
-	//riru_hide(_("libil2cpp.so"));
-	//sleep(1);
-	//riru_hide(_("libunity.so"));
     
     int serverSocket = socket(AF_INET, SOCK_DGRAM, 0);
     if (serverSocket == -1) {
@@ -1749,15 +1537,11 @@ void mnthread() {
 	}
 
     LOGI(_("Server listening on port..."));
-	
-	//DobbyHook((void*)(unity_base + 0x68EBD0), (void *)hook_eglSwapBuffers, (void **)&old_eglSwapBuffers);
-	//DobbyHook(xdl_sym(xdl_open(_("libEGL.so"), XDL_DEFAULT), _("eglSwapBuffers"), NULL), (void *)hook_eglSwapBuffers, (void **)&old_eglSwapBuffers);
-	
+
 	std::thread(PUpdate).detach();
     std::thread(EspProcessor).detach();
     std::thread(AimProcessor).detach();
     std::thread(GunProcessor).detach();
-	//riru_hide(_("memfd:jit-cache"));
     
     LOGI(_("Successfully launched sub-threads"));
 	
@@ -1779,7 +1563,6 @@ void mnthread() {
         LOGI("append success");
         std::string dval(xor_cipher(hex_to_string(std::string(buffer)), OBFUSCATE("System.Reflection"), false));
         LOGI("dec success %p, %s", &dval, dval.c_str());
-        //logger->append((std::string("Received: ") + dval));
 			if (contains(dval, _("event"))) {
                 LOGI("message to parse: %p, %s", &dval, dval.c_str());
 				json data = json::parse(dval);
@@ -1836,7 +1619,6 @@ void mnthread() {
                                         else
                                             uniqueSkinNames.insert(skinName);    
                                         skins.push_back({key, skinName});
-                                        //LOGI("%s, %d, %d", skinName.c_str(), (*(int*)((uintptr_t)boltInventoryItemDefinition + 0x10)), (*(int*)((uintptr_t)boltInventoryItemDefinition + 0x3C)));
                                     }
                                 }
                             }
@@ -1877,7 +1659,6 @@ void mnthread() {
                                             uniqueSkinNames.insert(skinName);
                                             LOGI("pushing %s", skinName.c_str());
                                         skins.push_back({key, skinName});
-                                        //LOGI("%s, %d, %d", skinName.c_str(), (*(int*)((uintptr_t)boltInventoryItemDefinition + 0x10)), (*(int*)((uintptr_t)boltInventoryItemDefinition + 0x3C)));
                                     }
                                 }
                             }
@@ -1903,11 +1684,6 @@ void mnthread() {
 			}
     }
 }
-/*
-__attribute__((constructor))
-void qcpep() {
-    std::thread(mnthread).detach();
-}*/
 
 __attribute__((__visibility__("default")))
 void awaken() {
