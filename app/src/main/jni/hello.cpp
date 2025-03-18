@@ -1051,6 +1051,11 @@ void GunProcessor() {
                                             if (fastbomb) {
                                                 *(void**)((uintptr_t)wprm + 0x14C) = set_sfloat(1.0f);
                                                 *(void**)((uintptr_t)wprm + 0x158) = set_sfloat(1.0f);
+                                            } else if (wpid >= 91 && wpid <= 95) {
+                                                void* _unlimited = *(void **)((uint64_t)weapon + 0x118);
+                                                if (_unlimited) {
+                                                    *(void **)((uint64_t)weapon + 0x118) = set_sbool(true);
+                                                }
                                             }
                                         } else {
                                             if (fastk) {
