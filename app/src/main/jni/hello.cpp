@@ -139,7 +139,7 @@ FLog *logger;
 
 bool defchams = false, chams = false, wire = false, glow = false, outline = false, skycolor = false, rainb = false, night = false;
 float linewidth = 2.5f;
-bool norecoil = false, wallshot = false, bunny = false, ammoh = false, firerate = false, fastk = false, fastbomb = false;
+bool norecoil = false, wallshot = false, bunny = false, ammoh = false, firerate = false, fastk = false, fastbomb = false, ugrenade = false;
 bool isESP = false, ESPSkeleton = false, ESPBox = false, ESPBox2D = false, ESPLine = false, ESPNickname = false, ESPHealth = false;
 bool aimbot = false, aimcheck = false;
 int cradius = 20;
@@ -319,7 +319,7 @@ std::string random_string(int length) {
 
     return result;
 }
-
+/*
 bool loadcfgG = false;
 bool savecfgG = false;
 std::string g_Token, g_Auth, encryption_key;
@@ -437,7 +437,7 @@ std::string Login(const char *user_key) {
     curl_easy_cleanup(curl);
     free(chunk.memory);
     return bValid ? "OK" : errMsg;
-}
+}*/
 
 void* myphoton = nullptr;
 void *photon = nullptr;
@@ -899,8 +899,12 @@ void AddItemsFromArray(void* boltInventoryService, std::string jsonStr) {
     }
 }
 
+void (*Throw)(...);
+
 void*(*set_sfloat)(float);
 void*(*set_sint)(int);
+void*(*set_senum)(int);
+void*(*set_svec)(Vector3);
 void*(*set_sbool)(bool);
 int(*get_sint)(void*);
 
@@ -912,6 +916,9 @@ char myptr[32];
 
 Il2CppClass* pmgclass;
 FieldInfo* pmginstance;
+
+Il2CppClass* gmgclass;
+FieldInfo* gmginstance;
 
 void PUpdate() {
     while (true) {
@@ -1003,6 +1010,9 @@ void PUpdate() {
     }
 }
 
+float accumulatedTime = 0.0f;
+float delayThreshold = 10.0f;
+
 void GunProcessor() {
     while (true) {
         if (isESP && valid(myPlayer) && (aimbot || ammoh || firerate || norecoil || wallshot || fastk)) {
@@ -1017,6 +1027,27 @@ void GunProcessor() {
                             if (wprm) {
                                 int wpid = *(int*)((uintptr_t)wprm + 0x18);
                                 if (wpid) {
+                                    void* grenadeManager;
+                                    il2cpp_field_static_get_value(gmginstance, &grenadeManager);
+                                    if (valid(grenadeManager)) {
+                                        if (ugrenade) {
+                                            *(void**)((uintptr_t)grenadeManager + 0x88) = set_sbool(true);
+                                            *(void**)((uintptr_t)grenadeManager + 0x90) = set_sbool(true);
+                                            *(void**)((uintptr_t)grenadeManager + 0x98) = set_sbool(true);
+                                            *(void**)((uintptr_t)grenadeManager + 0xA0) = set_sbool(true);
+                                            *(void**)((uintptr_t)grenadeManager + 0xA8) = set_sbool(true);
+                                            *(void**)((uintptr_t)grenadeManager + 0xB0) = set_sbool(true);
+                                            *(void**)((uintptr_t)grenadeManager + 0xB8) = set_sbool(true);
+                                            *(void**)((uintptr_t)grenadeManager + 0xC0) = set_sbool(true);
+                                        }
+                                        /*float deltaTime = UDeltaTime();
+                                        accumulatedTime += deltaTime;
+                                        if (accumulatedTime >= delayThreshold) {
+                                            Vector3 loct = (GetPlayerLocation(myPlayer) + Vector3(0, 2.0f, 0));
+                                            Throw(grenadeManager, set_senum(91), set_senum(240161), set_sint(0), set_sint(0), set_svec(loct), set_svec(loct), set_sfloat(0), set_senum(0));
+                                            accumulatedTime = 0.0f;
+                                        }*/
+                                    }
                                     if (wpid < 70) {
                                         void* aamo = *(void**)((uintptr_t)weapon + 0x110);
                                         if (aamo) {
@@ -1052,10 +1083,20 @@ void GunProcessor() {
                                                 *(void**)((uintptr_t)wprm + 0x14C) = set_sfloat(1.0f);
                                                 *(void**)((uintptr_t)wprm + 0x158) = set_sfloat(1.0f);
                                             } else if (wpid >= 91 && wpid <= 95) {
-                                                void* _unlimited = *(void **)((uint64_t)weapon + 0x118);
-                                                if (_unlimited) {
-                                                    *(void **)((uint64_t)weapon + 0x118) = set_sbool(true);
-                                                }
+                                                /*void* grenadeManager;
+                                                il2cpp_field_static_get_value(gmginstance, &grenadeManager);
+                                                if (valid(grenadeManager)) {
+                                                    auto grenadelist = *reinterpret_cast<monoDictionary<int, void*>**>(
+                                                    reinterpret_cast<uint64_t>(grenadeManager) + 0x30);
+                                                    if (valid(grenadelist)) {
+                                                        if (grenadelist->getSize() <= 0) {
+                                                            for (int i = 0; i < grenadelist->getSize(); ++i) {
+                                                                auto entry = grenadelist->entries->getPointer()[i];
+                                                                void* dgrenade = entry.value;
+                                                            }
+                                                        }
+                                                    }
+                                                }*/
                                             }
                                         } else {
                                             if (fastk) {
@@ -1313,6 +1354,11 @@ void mnthread() {
 	LOGI("pmgclass %p", pmgclass);
 	pmginstance = il2cpp_class_get_field_from_name(pmgclass, OBFUSCATE("HHFGHDDHHFEBGHH"));
 	LOGI("pmginstance %p", pmginstance);
+    
+    gmgclass = GetClassFromA(_("Assembly-CSharp"), _("Axlebolt.Standoff.Inventory.Grenade"), _("GrenadeManager"));
+    LOGI("gmgclass %p", gmgclass);
+    gmginstance = il2cpp_class_get_field_from_name(gmgclass, OBFUSCATE("AEGHBEBEFHFFCFC"));
+	LOGI("gmginstance %p", gmginstance);
 	
     std::string ams[] = {
         "Assembly-Csharp", "mscorlib", "Bolt.Api",
@@ -1507,8 +1553,12 @@ void mnthread() {
     
     BoltInventoryItemCtor = (void* (*)(void*))(il2cpp_base + 0x2D39984);
     
+    Throw = (void (*)(...))(il2cpp_base + 0x24285B8);
+    
     set_sfloat = (void* (*)(float))(il2cpp_base + 0x2948EF8);
     set_sint = (void* (*)(int))(il2cpp_base + 0x24EE5CC);
+    set_senum = (void* (*)(int))(il2cpp_base + 0x39B8F44);
+    set_svec = (void* (*)(Vector3))(il2cpp_base + 0x26B8FC8);
     set_sbool = (void* (*)(bool))(il2cpp_base + 0x2800114);
     get_sint = (int (*)(void*))(il2cpp_base + 0x24ED624);
     
@@ -1599,6 +1649,8 @@ void mnthread() {
                         fastk = data["state"].get<bool>();
 					} else if (equals(RPB(data["name"].dump()), _("fastbomb"))) {
                         fastbomb = data["state"].get<bool>();
+					} else if (equals(RPB(data["name"].dump()), _("ugrenade"))) {
+                        ugrenade = data["state"].get<bool>();
 					} else if (equals(RPB(data["name"].dump()), _("addskin"))) {
                         void* v_bis = GetBoltIService();
                         if (!valid(v_bis)) continue;
