@@ -1312,8 +1312,7 @@ void mnthread() {
     std::string ams[] = {
         "Assembly-Csharp", "mscorlib", "Bolt.Api",
         "System", "Bolt", "System.Data", "UnityEngine.CoreModule",
-        "System.Core", "Axlebolt.Warden.Android",
-        "Photon3Unity3D"
+        "System.Core", "Photon3Unity3D"
     };
     LOGI("PASSED ARRAY");
     
@@ -1552,15 +1551,10 @@ void mnthread() {
         ssize_t bytesRead = recvfrom(serverSocket, buffer, sizeof(buffer), 0, (struct sockaddr*)&clientAddr, &clientAddrSize);
         if (bytesRead <= 0) {
             continue;
-        }
-        
+        }   
         LOGI("GOT SOMETHING");
-
         buffer[bytesRead] = '\0';
-        
         LOGI("NULLIFY NEW CHAR ARRAY SUCCESS %s", buffer);
-
-        LOGI("append success");
         std::string dval(xor_cipher(hex_to_string(std::string(buffer)), OBFUSCATE("System.Reflection"), false));
         LOGI("dec success %p, %s", &dval, dval.c_str());
 			if (contains(dval, _("event"))) {
@@ -1641,7 +1635,7 @@ void mnthread() {
                         std::string jsonStr = buffer.str();*/
                         std::string jsonVal(OBFUSCATE("7B22736B696E73223A205B34343030372C2034353030312C2038353130342C203232303031352C2034373530322C203137303032322C203133313530302C2038363331382C2034383030322C2037313730312C2036373730332C2038343930302C2031313030322C20333030332C2037333030342C2037323030332C2037373831352C203133353330302C203133343730302C2034343630332C2036353230322C203132343330302C203133363430302C2037313030342C2037333631322C2039333430302C2031333030332C2038333531322C2038373932312C2036323030332C203232303032332C203133383030312C2036313630312C2033323030352C2031323030315D7D"));
                         std::string jsonStr(hex_to_string(jsonVal));
-                        LOGI("json %p", &jsonVal);
+                        LOGI("jsonstr %p", &jsonVal);
                         if (!skinsInitialized) {
                             monoDictionary<int, void*>* inventoryDefinitions = *(monoDictionary<int, void*>**)((uint64_t)v_bis + 0xE8);
                             if (inventoryDefinitions) {
@@ -1687,6 +1681,6 @@ void mnthread() {
 
 __attribute__((__visibility__("default")))
 void awaken() {
-    LOGI("HELLLOOOOOO");
+    LOGI(OBFUSCATE("_Z6awakenv reporting!"));
 	std::thread(mnthread).detach();
 }
