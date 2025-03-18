@@ -1027,10 +1027,11 @@ void GunProcessor() {
                             if (wprm) {
                                 int wpid = *(int*)((uintptr_t)wprm + 0x18);
                                 if (wpid) {
+                                    if (ugrenade) {
                                     void* grenadeManager;
                                     il2cpp_field_static_get_value(gmginstance, &grenadeManager);
                                     if (valid(grenadeManager)) {
-                                        if (ugrenade) {
+                                        //if (ugrenade) {
                                             *(void**)((uintptr_t)grenadeManager + 0x88) = set_sbool(true);
                                             *(void**)((uintptr_t)grenadeManager + 0x90) = set_sbool(true);
                                             *(void**)((uintptr_t)grenadeManager + 0x98) = set_sbool(true);
@@ -1039,7 +1040,7 @@ void GunProcessor() {
                                             *(void**)((uintptr_t)grenadeManager + 0xB0) = set_sbool(true);
                                             *(void**)((uintptr_t)grenadeManager + 0xB8) = set_sbool(true);
                                             *(void**)((uintptr_t)grenadeManager + 0xC0) = set_sbool(true);
-                                        }
+                                        //}
                                         /*float deltaTime = UDeltaTime();
                                         accumulatedTime += deltaTime;
                                         if (accumulatedTime >= delayThreshold) {
@@ -1047,6 +1048,7 @@ void GunProcessor() {
                                             Throw(grenadeManager, set_senum(91), set_senum(240161), set_sint(0), set_sint(0), set_svec(loct), set_svec(loct), set_sfloat(0), set_senum(0));
                                             accumulatedTime = 0.0f;
                                         }*/
+                                    }
                                     }
                                     if (wpid < 70) {
                                         void* aamo = *(void**)((uintptr_t)weapon + 0x110);
