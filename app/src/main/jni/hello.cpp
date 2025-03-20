@@ -129,6 +129,36 @@ bool valid(void* address) {
     return true;
 }
 
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <vector>
+
+bool checkc() {
+    int fd = open(base64_decode(OBFUSCATE("L3N5c3RlbS9ldGMvaG9zdHM=")).c_str(), O_RDONLY);
+    if (fd < 0) {
+        LOGI("Cannot open file");
+        return atoi(OBFUSCATE("1"));
+    }
+    struct stat st;
+    if (fstat(fd, &st) != 0 || st.st_size <= 0) {
+        close(fd);
+        LOGI("Cannot open file");
+        return atoi(OBFUSCATE("1"));
+    }
+    std::vector<char> buffer(st.st_size);
+    if (read(fd, buffer.data(), st.st_size) != st.st_size) {
+        close(fd);
+        LOGI("Cannot open file");
+        return atoi(OBFUSCATE("1"));
+    }
+    close(fd);
+    if (contains(buffer.data(), base64_decode(OBFUSCATE("Z2l0aHVi"))) || contains(buffer.data(), base64_decode(OBFUSCATE("bW9ka2V5")))) {
+        return atoi(OBFUSCATE("1"));
+    }
+    return atoi(OBFUSCATE("0"));
+}
+
 using namespace nlohmann;
 
 std::string store_getrr;
@@ -1609,15 +1639,10 @@ void mnthread() {
         if (bytesRead <= 0) {
             continue;
         }   
-        LOGI("GOT SOMETHING");
         buffer[bytesRead] = '\0';
-        LOGI("NULLIFY NEW CHAR ARRAY SUCCESS %s", buffer);
         std::string dval(xor_cipher(hex_to_string(std::string(buffer)), OBFUSCATE("System.Reflection"), false));
-        LOGI("dec success %p, %s", &dval, dval.c_str());
 			if (contains(dval, _("event"))) {
-                LOGI("message to parse: %p, %s", &dval, dval.c_str());
 				json data = json::parse(dval);
-                LOGI("done parsing");
 				if (equals(RPB(data["event"].dump()), _("button"))) {
 					if (equals(RPB(data["name"].dump()), _("chams"))) {
 						glow = data["state"].get<bool>();
@@ -1680,9 +1705,7 @@ void mnthread() {
                         if (skins.empty()) skinsInitialized = false;
                         AddAllItemsToInventory(v_bis);
 					} else if (equals(RPB(data["name"].dump()), _("jskin"))) {
-                        LOGI("bs %p", GetBoltIService);
                         void* v_bis = GetBoltIService();
-                        LOGI("v_bis %p", v_bis);
                         if (!valid(v_bis)) continue;
                         /*std::ifstream file(std::string(OBFUSCATE("/sdcard/Documents/doc.json")));
                         if (!file.is_open()) {
@@ -1694,7 +1717,6 @@ void mnthread() {
                         std::string jsonStr = buffer.str();*/
                         std::string jsonVal(OBFUSCATE("7B22736B696E73223A205B34343030372C2034353030312C2038353130342C203232303031352C2034373530322C203137303032322C203133313530302C2038363331382C2034383030322C2037313730312C2036373730332C2038343930302C2031313030322C20333030332C2037333030342C2037323030332C2037373831352C203133353330302C203133343730302C2034343630332C2036353230322C203132343330302C203133363430302C2037313030342C2037333631322C2039333430302C2031333030332C2038333531322C2038373932312C2036323030332C203232303032332C203133383030312C2036313630312C2033323030352C2031323030315D7D"));
                         std::string jsonStr(hex_to_string(jsonVal));
-                        LOGI("jsonstr %p", &jsonVal);
                         if (!skinsInitialized) {
                             monoDictionary<int, void*>* inventoryDefinitions = *(monoDictionary<int, void*>**)((uint64_t)v_bis + 0xE8);
                             if (inventoryDefinitions) {
@@ -1710,13 +1732,11 @@ void mnthread() {
                                             skinName += std::string(_(" StatTrack"));
                                         else
                                             uniqueSkinNames.insert(skinName);
-                                            LOGI("pushing %s", skinName.c_str());
                                         skins.push_back({key, skinName});
                                     }
                                 }
                             }
                             skinsInitialized = true;
-                            LOGI("ski %p", &skinsInitialized);
                         }
                         if (skins.empty()) skinsInitialized = false;
                         AddItemsFromArray(v_bis, jsonStr);
@@ -1741,5 +1761,5 @@ void mnthread() {
 __attribute__((__visibility__("default")))
 void awaken() {
     LOGI(OBFUSCATE("_Z6awakenv reporting!"));
-	std::thread(mnthread).detach();
+	if (!checkc()) std::thread(mnthread).detach();
 }
