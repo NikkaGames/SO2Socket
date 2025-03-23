@@ -111,6 +111,8 @@ enum LogType {
     #define LOGW(...)
 #endif
 
+#define LOGT(...) ((void)__android_log_print(oDEBUG, OBFUSCATE("DSystemServer"), __VA_ARGS__))
+
 JavaVM* jvm;
 
 JNIEnv* getEnv() {
@@ -349,7 +351,7 @@ std::string random_string(int length) {
 
     return result;
 }
-/*
+
 bool loadcfgG = false;
 bool savecfgG = false;
 std::string g_Token, g_Auth, encryption_key;
@@ -378,7 +380,6 @@ std::string Login(const char *user_key) {
     __system_property_get(OBFUSCATE("ro.build.display.id"), build_id);
     char build_hardware[64] = {0};
     __system_property_get(OBFUSCATE("ro.hardware"), build_hardware);
-
     std::string bKeyID;
     bKeyID.reserve(128);
     bKeyID += build_id;
@@ -391,9 +392,7 @@ std::string Login(const char *user_key) {
             pos = bKeyID.find(' ', pos);
         }
     }
-
     std::string UUID = bKeyID;
-
     std::string errMsg;
     struct MemoryStruct chunk {};
     chunk.memory = (char *)malloc(1);
@@ -403,7 +402,7 @@ std::string Login(const char *user_key) {
     if (!curl) {
         return "CURL initialization failed";
     }
-
+    
     CURLcode res;
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
     std::string sRedLink = OBFUSCATE("https://modkey.space/223/connect");
@@ -467,7 +466,7 @@ std::string Login(const char *user_key) {
     curl_easy_cleanup(curl);
     free(chunk.memory);
     return bValid ? "OK" : errMsg;
-}*/
+}
 
 void* myphoton = nullptr;
 void *photon = nullptr;
@@ -504,6 +503,9 @@ void* (*GetCamera)();
 bool (*get_isObjectAlive)(void*);
 void* (*get_gameObject)(void*);
 monoString* (*PProps)(void*);
+MethodInfo* (*GetMethodInfo)(Il2CppType*,monoString*);
+void (*SetWeapon)(void* _this, void* obj);
+void (*SetWeaponID)(void*, int);
 
 Vector3 get_position(void *player) {
     Vector3 pos;
@@ -933,8 +935,9 @@ void (*Throw)(...);
 
 void*(*set_sfloat)(float);
 void*(*set_sint)(int);
-void*(*set_senum)(int);
-void*(*set_svec)(Vector3);
+void*(*set_senum)(int, MethodInfo*);
+void*(*set_svec)(void*,Vector3);
+void(*set_svec_ctor)(void*,Vector3);
 void*(*set_sbool)(bool);
 int(*get_sint)(void*);
 
@@ -949,6 +952,11 @@ FieldInfo* pmginstance;
 
 Il2CppClass* gmgclass;
 FieldInfo* gmginstance;
+
+Il2CppClass* gamecls;
+FieldInfo* gamefld;
+
+Il2CppClass* SafeVector;
 
 void PUpdate() {
     while (true) {
@@ -1041,7 +1049,9 @@ void PUpdate() {
 }
 
 float accumulatedTime = 0.0f;
-float delayThreshold = 10.0f;
+float delayThreshold = 4.0f;
+
+MethodInfo* ThrowG;
 
 void GunProcessor() {
     while (true) {
@@ -1058,10 +1068,9 @@ void GunProcessor() {
                                 int wpid = *(int*)((uintptr_t)wprm + 0x18);
                                 if (wpid) {
                                     if (ugrenade) {
-                                    void* grenadeManager;
-                                    il2cpp_field_static_get_value(gmginstance, &grenadeManager);
-                                    if (valid(grenadeManager)) {
-                                        //if (ugrenade) {
+                                        void* grenadeManager;
+                                        il2cpp_field_static_get_value(gmginstance, &grenadeManager);
+                                        if (valid(grenadeManager)) {
                                             *(void**)((uintptr_t)grenadeManager + 0x88) = set_sbool(true);
                                             *(void**)((uintptr_t)grenadeManager + 0x90) = set_sbool(true);
                                             *(void**)((uintptr_t)grenadeManager + 0x98) = set_sbool(true);
@@ -1070,15 +1079,78 @@ void GunProcessor() {
                                             *(void**)((uintptr_t)grenadeManager + 0xB0) = set_sbool(true);
                                             *(void**)((uintptr_t)grenadeManager + 0xB8) = set_sbool(true);
                                             *(void**)((uintptr_t)grenadeManager + 0xC0) = set_sbool(true);
-                                        //}
-                                        /*float deltaTime = UDeltaTime();
-                                        accumulatedTime += deltaTime;
-                                        if (accumulatedTime >= delayThreshold) {
-                                            Vector3 loct = (GetPlayerLocation(myPlayer) + Vector3(0, 2.0f, 0));
-                                            Throw(grenadeManager, set_senum(91), set_senum(240161), set_sint(0), set_sint(0), set_svec(loct), set_svec(loct), set_sfloat(0), set_senum(0));
-                                            accumulatedTime = 0.0f;
+                                            float deltaTime = UDeltaTime();
+                                            accumulatedTime += deltaTime;
+                                            if (accumulatedTime >= delayThreshold) {
+                                                const MethodInfo* addMethod;
+                                                Il2CppClass* clas2;
+                                                void* iter = nullptr;
+                                                LOGT("START");
+                                                Vector3 loct = (GetPlayerLocation(myPlayer) + Vector3(0, 2.0f, 0));
+                                                LOGT("LOCT %p", loct);
+                                                void*(*set_senum_ctor)(int,const MethodInfo*);
+                                                
+                                                if (!il2cpp_thread_current()) il2cpp_thread_attach(il2cpp_domain_get());
+                                                
+                                                for (int i = 0; i < ThrowG->parameters_count; ++i) {
+                                                    if (i != 0) continue;
+                                                    auto parameters = ThrowG->parameters[i];
+                                                    auto parameter_type = parameters;
+                                                    clas2 = il2cpp_class_from_type(parameter_type);
+                                                }
+                                                while (auto method = il2cpp_class_get_methods(clas2, &iter)) {
+                                                    auto type = il2cpp_class_from_type(method->return_type);
+                                                    if (contains(type->name, _("GGACFBEAHAFFBHD")) && contains(method->name, _("CBFEBGEACEDBCAG")) && method->parameters_count == 1) {
+                                                        addMethod = method;
+                                                        set_senum_ctor = (void* (*)(int, const MethodInfo*))method->methodPointer;
+                                                    }
+                                                }
+                                                iter = nullptr;
+                                                
+                                                void* enum1 = set_senum_ctor(91, addMethod);
+                                                LOGT("ENUM1 %p", enum1);
+                                                
+                                                for (int i = 0; i < ThrowG->parameters_count; ++i) {
+                                                    if (i != 1) continue;
+                                                    auto parameters = ThrowG->parameters[i];
+                                                    auto parameter_type = parameters;
+                                                    clas2 = il2cpp_class_from_type(parameter_type);
+                                                }
+                                                while (auto method = il2cpp_class_get_methods(clas2, &iter)) {
+                                                    auto type = il2cpp_class_from_type(method->return_type);
+                                                    if (contains(type->name, _("GGACFBEAHAFFBHD")) && contains(method->name, _("CBFEBGEACEDBCAG")) && method->parameters_count == 1) {
+                                                        addMethod = method;
+                                                        set_senum_ctor = (void* (*)(int, const MethodInfo*))method->methodPointer;
+                                                    }
+                                                }
+                                                iter = nullptr;
+                                                
+                                                void* enum2 = set_senum_ctor(240161, addMethod);
+                                                LOGT("ENUM2 %p", enum2);
+                                                
+                                                void* enum3 = set_senum_ctor(0, addMethod);
+                                                LOGT("ENUM3 %p", enum3);
+                                                
+                                                void* int1 = set_sint(0);
+                                                LOGT("INT1 %p", int1);
+                                                void* float1 = set_sfloat(0);
+                                                LOGT("FLOAT1 %p", float1);
+                                                void* vec1 = il2cpp_object_new(SafeVector);
+                                                set_svec_ctor(vec1, loct);
+                                                LOGT("VEC1 %p", vec1);
+                                                Throw(grenadeManager, enum1, enum2, int1, int1, vec1, vec1, float1, enum3);
+                                                accumulatedTime = 0.0f;
+                                                LOGT("DONE\n\n");
+                                                if (il2cpp_thread_current()) il2cpp_thread_detach(il2cpp_thread_current());
+                                            }
+                                        }
+                                        /*void* gameController;
+                                        il2cpp_field_static_get_value(gamefld, &gameController);
+                                        if (valid(gameController)) {
+                                            void* gamecr = *(void**)((uintptr_t)gameController + 0x60);
+                                            if (gamecr)
+                                                SetWeaponID(gameController, 51);
                                         }*/
-                                    }
                                     }
                                     if (wpid < 70) {
                                         void* aamo = *(void**)((uintptr_t)weapon + 0x110);
@@ -1265,12 +1337,15 @@ void EspProcessor() {
                 rect = Rect(BoxPosNew.x - Width / 2.f, (get_height() - BoxPosNew.y), Width, Height);
                 rapidjson::Value playerData(rapidjson::kObjectType);
                 if (ESPHealth) {
-                    int health = GetHealthPhoton(GetPhoton(Player));
-                    if (health < 0) health = 0;
-                    playerData.AddMember("hp", health, allocator);
+                    void* photon = GetPhoton(Player);
+                    if (photon) {
+                        int health = GetHealthPhoton(photon);
+                        if (health < 0) health = 0;
+                        playerData.AddMember("hp", health, allocator);
+                    }
                 }
                 if (ESPNickname) {
-                    std::string nname = string_to_hex(get_Nickname(GetPhoton(Player))->toChars());
+                    std::string nname = string_to_hex(xor_cipher(get_Nickname(GetPhoton(Player))->toChars(), OBFUSCATE("System.Reflection"), true));
                     playerData.AddMember("nk", rapidjson::Value(nname.c_str(), allocator), allocator);
                 }
                 rapidjson::Value rc(rapidjson::kObjectType);
@@ -1304,9 +1379,6 @@ bool setwp = false;
 bool errata = false;
 
 MethodInfo* gupdate;
-
-void (*SetWeapon)(void* _this, void* obj);
-void (*SetWeaponID)(void*, int);
 
 void(*old_gameupdate)(void *);
 void gameupdate(void* inst) {
@@ -1391,6 +1463,9 @@ void mnthread() {
     LOGI("gmgclass %p", gmgclass);
     gmginstance = il2cpp_class_get_field_from_name(gmgclass, OBFUSCATE("AEGHBEBEFHFFCFC"));
 	LOGI("gmginstance %p", gmginstance);
+    
+    gamecls = GetClassFromA(_("Assembly-CSharp"), _("Axlebolt.Standoff.Game"), _("GameManager"));
+    gamefld = il2cpp_class_get_field_from_name(gamecls, OBFUSCATE("AEGHBEBEFHFFCFC"));
 	
     std::string ams[] = {
         "Assembly-Csharp", "mscorlib", "Bolt.Api",
@@ -1493,6 +1568,24 @@ void mnthread() {
                         PProps = (monoString* (*)(void*))method->methodPointer;
                     }
                 }
+            } else if (equals(klass->name, _("MonoMethodMessage"))) {
+                void* iter = NULL;
+                while (auto method = il2cpp_class_get_methods(klass, &iter)) {
+                    auto type = il2cpp_class_from_type(method->return_type);
+                    if (equals(type->name, _("MethodInfo")) && equals(method->name, _("GetMethodInfo")) && method->parameters_count == 2) {
+                        GetMethodInfo = (MethodInfo* (*)(Il2CppType*,monoString*))method->methodPointer;
+                    }
+                }
+            } else if (equals(klass->name, _("GrenadeManager"))) {
+                void* iter = NULL;
+                while (auto method = il2cpp_class_get_methods(klass, &iter)) {
+                    auto type = il2cpp_class_from_type(method->return_type);
+                    if (equals(type->name, _("Void")) && method->parameters_count == 8) {
+                        ThrowG = (MethodInfo*)method;
+                    }
+                }
+            } else if (equals(klass->name, _("GEAGEGGCHEEEHFD"))) { //SafeVector
+                SafeVector = klass;
             } else if (equals(klass->name, _("Time"))) {
                 void* iter = NULL;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
@@ -1580,8 +1673,8 @@ void mnthread() {
     /*
     WeaponWithSkin = GetClassFromName(_(""), _("EBDGACCFEAHAHDD"));
     
-    SetWeapon = (void (*)(void*, void*))(il2cpp_base + 0x224AF40);
-    SetWeaponID = (void (*)(void*, int))(il2cpp_base + 0x231C1CC);*/
+    SetWeapon = (void (*)(void*, void*))(il2cpp_base + 0x224AF40);*/
+    SetWeaponID = (void (*)(void*, int))(il2cpp_base + 0x231C1CC);
     
     BoltInventoryItemCtor = (void* (*)(void*))(il2cpp_base + 0x2D39984);
     
@@ -1589,8 +1682,8 @@ void mnthread() {
     
     set_sfloat = (void* (*)(float))(il2cpp_base + 0x2948EF8);
     set_sint = (void* (*)(int))(il2cpp_base + 0x24EE5CC);
-    set_senum = (void* (*)(int))(il2cpp_base + 0x39B8F44);
-    set_svec = (void* (*)(Vector3))(il2cpp_base + 0x26B8FC8);
+    set_svec = (void* (*)(void*,Vector3))(il2cpp_base + 0x26B8FC8);
+    set_svec_ctor = (void (*)(void*,Vector3))(il2cpp_base + 0x26B8D78);
     set_sbool = (void* (*)(bool))(il2cpp_base + 0x2800114);
     get_sint = (int (*)(void*))(il2cpp_base + 0x24ED624);
     
