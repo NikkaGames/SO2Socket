@@ -171,7 +171,7 @@ FLog *logger;
 
 bool defchams = false, chams = false, wire = false, glow = false, outline = false, skycolor = false, rainb = false, night = false;
 float linewidth = 2.5f;
-bool norecoil = false, wallshot = false, bunny = false, ammoh = false, firerate = false, fastk = false, fastbomb = false, ugrenade = false;
+bool norecoil = false, wallshot = false, bunny = false, ammoh = false, firerate = false, fastk = false, fastbomb = false, ugrenade = false, gnuke = false;
 bool isESP = false, ESPSkeleton = false, ESPBox = false, ESPBox2D = false, ESPLine = false, ESPNickname = false, ESPHealth = false;
 bool aimbot = false, aimcheck = false;
 int cradius = 20;
@@ -1065,6 +1065,9 @@ float accumulatedTime = 0.0f;
 float delayThreshold = 1.0f;
 
 MethodInfo* ThrowG;
+int grenadeid = 91;
+
+Vector3 ThrowLoc = Vector3(0, 0, 0);
 
 void GunProcessor() {
     while (true) {
@@ -1080,90 +1083,74 @@ void GunProcessor() {
                             if (wprm) {
                                 int wpid = *(int*)((uintptr_t)wprm + 0x18);
                                 if (wpid) {
-                                    if (ugrenade) {
+                                    if (ugrenade || gnuke) {
                                         void* grenadeManager;
                                         il2cpp_field_static_get_value(gmginstance, &grenadeManager);
                                         if (valid(grenadeManager)) {
-                                            *(void**)((uintptr_t)grenadeManager + 0x88) = set_sbool(true);
-                                            *(void**)((uintptr_t)grenadeManager + 0x90) = set_sbool(true);
-                                            *(void**)((uintptr_t)grenadeManager + 0x98) = set_sbool(true);
-                                            *(void**)((uintptr_t)grenadeManager + 0xA0) = set_sbool(true);
-                                            *(void**)((uintptr_t)grenadeManager + 0xA8) = set_sbool(true);
-                                            *(void**)((uintptr_t)grenadeManager + 0xB0) = set_sbool(true);
-                                            *(void**)((uintptr_t)grenadeManager + 0xB8) = set_sbool(true);
-                                            *(void**)((uintptr_t)grenadeManager + 0xC0) = set_sbool(true);
-                                            float deltaTime = GetDeltaTime();
-                                            accumulatedTime += deltaTime;
-                                            if (accumulatedTime >= delayThreshold) {
-                                                const MethodInfo* addMethod;
-                                                Il2CppClass* clas2;
-                                                void* iter = nullptr;
-                                                LOGT("START");
-                                                Vector3 loct = (GetPlayerLocation(myPlayer) + Vector3(0, 2.0f, 0));
-                                                LOGT("LOCT %p", loct);
-                                                void*(*set_senum_ctor)(int,const MethodInfo*);
+                                            if (ugrenade) {
+                                                *(void**)((uintptr_t)grenadeManager + 0x88) = set_sbool(true);
+                                                *(void**)((uintptr_t)grenadeManager + 0x90) = set_sbool(true);
+                                                *(void**)((uintptr_t)grenadeManager + 0x98) = set_sbool(true);
+                                                *(void**)((uintptr_t)grenadeManager + 0xA0) = set_sbool(true);
+                                                *(void**)((uintptr_t)grenadeManager + 0xA8) = set_sbool(true);
+                                                *(void**)((uintptr_t)grenadeManager + 0xB0) = set_sbool(true);
+                                                *(void**)((uintptr_t)grenadeManager + 0xB8) = set_sbool(true);
+                                                *(void**)((uintptr_t)grenadeManager + 0xC0) = set_sbool(true);
+                                            }
+                                            if (gnuke) {
+                                                float deltaTime = GetDeltaTime();
+                                                accumulatedTime += deltaTime;
+                                                if (accumulatedTime >= delayThreshold) {
+                                                    const MethodInfo* addMethod;
+                                                    Il2CppClass* clas2;
+                                                    void* iter = nullptr;
+                                                    Vector3 loct = (ThrowLoc + Vector3(0, 0.2f, 0));
+                                                    void*(*set_senum_ctor)(int,const MethodInfo*);
                                                 
-                                                if (!il2cpp_thread_current()) il2cpp_thread_attach(il2cpp_domain_get());
+                                                    if (!il2cpp_thread_current()) il2cpp_thread_attach(il2cpp_domain_get());
                                                 
-                                                for (int i = 0; i < ThrowG->parameters_count; ++i) {
-                                                    if (i != 0) continue;
-                                                    auto parameters = ThrowG->parameters[i];
-                                                    auto parameter_type = parameters;
-                                                    clas2 = il2cpp_class_from_type(parameter_type);
-                                                }
-                                                while (auto method = il2cpp_class_get_methods(clas2, &iter)) {
-                                                    auto type = il2cpp_class_from_type(method->return_type);
-                                                    if (contains(type->name, _("GGACFBEAHAFFBHD")) && contains(method->name, _("CBFEBGEACEDBCAG")) && method->parameters_count == 1) {
-                                                        addMethod = method;
-                                                        set_senum_ctor = (void* (*)(int, const MethodInfo*))method->methodPointer;
+                                                    for (int i = 0; i < ThrowG->parameters_count; ++i) {
+                                                        if (i != 0) continue;
+                                                        auto parameters = ThrowG->parameters[i];
+                                                        auto parameter_type = parameters;
+                                                        clas2 = il2cpp_class_from_type(parameter_type);
                                                     }
-                                                }
-                                                iter = nullptr;
-                                                
-                                                void* enum1 = set_senum_ctor(91, addMethod);
-                                                LOGT("ENUM1 %p", enum1);
-                                                
-                                                for (int i = 0; i < ThrowG->parameters_count; ++i) {
-                                                    if (i != 1) continue;
-                                                    auto parameters = ThrowG->parameters[i];
-                                                    auto parameter_type = parameters;
-                                                    clas2 = il2cpp_class_from_type(parameter_type);
-                                                }
-                                                while (auto method = il2cpp_class_get_methods(clas2, &iter)) {
-                                                    auto type = il2cpp_class_from_type(method->return_type);
-                                                    if (contains(type->name, _("GGACFBEAHAFFBHD")) && contains(method->name, _("CBFEBGEACEDBCAG")) && method->parameters_count == 1) {
-                                                        addMethod = method;
-                                                        set_senum_ctor = (void* (*)(int, const MethodInfo*))method->methodPointer;
+                                                    while (auto method = il2cpp_class_get_methods(clas2, &iter)) {
+                                                        auto type = il2cpp_class_from_type(method->return_type);
+                                                        if (contains(type->name, _("GGACFBEAHAFFBHD")) && contains(method->name, _("CBFEBGEACEDBCAG")) && method->parameters_count == 1) {
+                                                            addMethod = method;
+                                                            set_senum_ctor = (void* (*)(int, const MethodInfo*))method->methodPointer;
+                                                        }
                                                     }
+                                                    iter = nullptr;
+                                                
+                                                    void* enum1 = set_senum_ctor(grenadeid, addMethod);
+                                                
+                                                    for (int i = 0; i < ThrowG->parameters_count; ++i) {
+                                                        if (i != 1) continue;
+                                                        auto parameters = ThrowG->parameters[i];
+                                                        auto parameter_type = parameters;
+                                                        clas2 = il2cpp_class_from_type(parameter_type);
+                                                    }
+                                                    while (auto method = il2cpp_class_get_methods(clas2, &iter)) {
+                                                        auto type = il2cpp_class_from_type(method->return_type);
+                                                        if (contains(type->name, _("GGACFBEAHAFFBHD")) && contains(method->name, _("CBFEBGEACEDBCAG")) && method->parameters_count == 1) {
+                                                            addMethod = method;
+                                                            set_senum_ctor = (void* (*)(int, const MethodInfo*))method->methodPointer;
+                                                        }
+                                                    }
+                                                    iter = nullptr;
+                                                
+                                                    void* enum2 = set_senum_ctor(240161, addMethod);  
+                                                    void* enum3 = set_senum_ctor(0, addMethod);     
+                                                    void* int1 = set_sint(0);
+                                                    void* float1 = set_sfloat(0);
+                                                    void* vec1 = il2cpp_object_new(SafeVector);
+                                                    set_svec_ctor(vec1, loct);
+                                                    Throw(grenadeManager, enum1, enum2, int1, int1, vec1, vec1, float1, enum3);
+                                                    if (il2cpp_thread_current()) il2cpp_thread_detach(il2cpp_thread_current());
+                                                    accumulatedTime = 0.0f;
                                                 }
-                                                iter = nullptr;
-                                                
-                                                void* enum2 = set_senum_ctor(240161, addMethod);
-                                                LOGT("ENUM2 %p", enum2);
-                                                
-                                                void* enum3 = set_senum_ctor(0, addMethod);
-                                                LOGT("ENUM3 %p", enum3);
-                                                
-                                                void* int1 = set_sint(0);
-                                                LOGT("INT1 %p", int1);
-                                                void* float1 = set_sfloat(0);
-                                                LOGT("FLOAT1 %p", float1);
-                                                void* vec1 = il2cpp_object_new(SafeVector);
-                                                set_svec_ctor(vec1, loct);
-                                                LOGT("VEC1 %p", vec1);
-                                                Throw(grenadeManager, enum1, enum2, int1, int1, vec1, vec1, float1, enum3);
-                                                void* gameController;
-                                                il2cpp_field_static_get_value(gamefld, &gameController);
-                                                LOGT("GMG %p", gameController);
-                                                if (gameController) {
-                                                    void* gamecr = *(void**)((uintptr_t)gameController + 0x60);
-                                                    LOGT("GCTRL %p", gamecr);
-                                                    if (gamecr)
-                                                        SetWeaponID(gameController, 51);
-                                                }
-                                                LOGT("DONE\n\n");
-                                                if (il2cpp_thread_current()) il2cpp_thread_detach(il2cpp_thread_current());
-                                                accumulatedTime = 0.0f;
                                             }
                                         }
                                     }
@@ -1201,23 +1188,11 @@ void GunProcessor() {
                                             if (fastbomb) {
                                                 *(void**)((uintptr_t)wprm + 0x14C) = set_sfloat(1.0f);
                                                 *(void**)((uintptr_t)wprm + 0x158) = set_sfloat(1.0f);
-                                            } else if (wpid >= 91 && wpid <= 95) {
-                                                /*void* grenadeManager;
-                                                il2cpp_field_static_get_value(gmginstance, &grenadeManager);
-                                                if (valid(grenadeManager)) {
-                                                    auto grenadelist = *reinterpret_cast<monoDictionary<int, void*>**>(
-                                                    reinterpret_cast<uint64_t>(grenadeManager) + 0x30);
-                                                    if (valid(grenadelist)) {
-                                                        if (grenadelist->getSize() <= 0) {
-                                                            for (int i = 0; i < grenadelist->getSize(); ++i) {
-                                                                auto entry = grenadelist->entries->getPointer()[i];
-                                                                void* dgrenade = entry.value;
-                                                            }
-                                                        }
-                                                    }
-                                                }*/
                                             }
                                         } else {
+                                            if (wpid >= 91 && wpid <= 95) {
+                                                grenadeid = wpid;
+                                            }
                                             if (fastk) {
                                                 *(void**)((uintptr_t)wprm + 0x14C) = set_sfloat(0);
                                                 *(void**)((uintptr_t)wprm + 0x158) = set_sfloat(0);
@@ -1338,6 +1313,7 @@ void EspProcessor() {
                 float posnum2 = 1.0; // Size slider * 0.1
                 Rect rect;
                 Vec3 PlayerPos = GetPlayerLoc(Player);
+                ThrowLoc = Vector3(PlayerPos.x, PlayerPos.y, PlayerPos.z);
                 Vec3 PosNew = {0.f, 0.f, 0.f};
                 PosNew = WorldToScreenPoint(mcamera, PlayerPos);
                 if (PosNew.z < 1.f) continue;
@@ -1786,6 +1762,8 @@ void mnthread() {
                         fastbomb = data["state"].get<bool>();
 					} else if (equals(RPB(data["name"].dump()), _("ugrenade"))) {
                         ugrenade = data["state"].get<bool>();
+					} else if (equals(RPB(data["name"].dump()), _("gnuke"))) {
+                        gnuke = data["state"].get<bool>();
 					} else if (equals(RPB(data["name"].dump()), _("addskin"))) {
                         void* v_bis = GetBoltIService();
                         if (!valid(v_bis)) continue;
