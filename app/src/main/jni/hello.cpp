@@ -468,6 +468,15 @@ std::string Login(const char *user_key) {
     return bValid ? "OK" : errMsg;
 }
 
+/*void* get_GameInstance() {
+    void* ret;
+    Il2CppClass *cls = GetClassFromName(_("Axlebolt.Standoff.Game"), _("GameManager"));
+    FieldInfo* fnm = il2cpp_class_get_field_from_name(cls, _("AEHADBBCHGHHHCB"));
+    il2cpp_field_static_get_value(fnm, &ret);
+    void* rets = *(void**)((uintptr_t)ret + 0x58);
+    return rets;
+}*/
+
 void* myphoton = nullptr;
 void *photon = nullptr;
 bool (*IsLocal)(void* photon);
@@ -1143,18 +1152,20 @@ void GunProcessor() {
                                                 set_svec_ctor(vec1, loct);
                                                 LOGT("VEC1 %p", vec1);
                                                 Throw(grenadeManager, enum1, enum2, int1, int1, vec1, vec1, float1, enum3);
+                                                void* gameController;
+                                                il2cpp_field_static_get_value(gamefld, &gameController);
+                                                LOGT("GMG %p", gameController);
+                                                if (gameController) {
+                                                    void* gamecr = *(void**)((uintptr_t)gameController + 0x60);
+                                                    LOGT("GCTRL %p", gamecr);
+                                                    if (gamecr)
+                                                        SetWeaponID(gameController, 51);
+                                                }
                                                 LOGT("DONE\n\n");
                                                 if (il2cpp_thread_current()) il2cpp_thread_detach(il2cpp_thread_current());
                                                 accumulatedTime = 0.0f;
                                             }
                                         }
-                                        /*void* gameController;
-                                        il2cpp_field_static_get_value(gamefld, &gameController);
-                                        if (valid(gameController)) {
-                                            void* gamecr = *(void**)((uintptr_t)gameController + 0x60);
-                                            if (gamecr)
-                                                SetWeaponID(gameController, 51);
-                                        }*/
                                     }
                                     if (wpid < 70) {
                                         void* aamo = *(void**)((uintptr_t)weapon + 0x110);
