@@ -1506,24 +1506,6 @@ void mnthread() {
                         DefaultEncoding = (void* (*)())method->methodPointer;
                     }
                 }
-            } else if (equals(klass->name, "Instance")) {
-                void* iter = NULL;
-                while (auto method = il2cpp_class_get_methods(klass, &iter)) {
-                    auto type = il2cpp_class_from_type(method->return_type);
-                    if (equals(type->name, _("IntPtr")) && equals(method->name, _("_Unwind_GetA")) && method->parameters_count == 0) {
-                        //DobbyHook((void*)method->methodPointer, (void*)new_geta, (void**)&old_geta);
-                    } else if (equals(type->name, _("IntPtr")) && equals(method->name, _("_Unwind_GetRR"))) {
-                        //DobbyHook((void*)method->methodPointer, (void*)_Unwind_GetRR, (void**)&Unwind_GetRR);
-                    }
-                }
-            } else if (equals(klass->name, "ECBFBDHCBGGEADH")) {
-                void* iter = NULL;
-                while (auto method = il2cpp_class_get_methods(klass, &iter)) {
-                    auto type = il2cpp_class_from_type(method->return_type);
-                    if (equals(type->name, _("Task")) && method->slot == 22 && method->parameters_count == 4) {
-                        //DobbyHook((void*)method->methodPointer, (void*)new_Task, (void**)&old_Task);
-                    }
-                }
             } else if (equals(klass->name, _("PlayerController"))) {
                 void* iter = NULL;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
@@ -1573,6 +1555,7 @@ void mnthread() {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("Void")) && method->parameters_count == 8) {
                         ThrowG = (MethodInfo*)method;
+                        Throw = (void (*)(...))(ThrowG->methodPointer);
                     }
                 }
             } else if (equals(klass->name, _("GEAGEGGCHEEEHFD"))) { //SafeVector
@@ -1668,8 +1651,6 @@ void mnthread() {
     SetWeaponID = (void (*)(void*, int))(il2cpp_base + 0x231C1CC);
     
     BoltInventoryItemCtor = (void* (*)(void*))(il2cpp_base + 0x2D39984);
-    
-    Throw = (void (*)(...))(il2cpp_base + 0x24285B8);
     
     set_sfloat = (void* (*)(float))(il2cpp_base + 0x2948EF8);
     set_sint = (void* (*)(int))(il2cpp_base + 0x24EE5CC);
