@@ -171,7 +171,7 @@ FLog *logger;
 
 bool defchams = false, chams = false, wire = false, glow = false, outline = false, skycolor = false, rainb = false, night = false;
 float linewidth = 2.5f;
-bool norecoil = false, wallshot = false, bunny = false, ammoh = false, firerate = false, fastk = false, fastbomb = false, ugrenade = false, gnuke = false;
+bool norecoil = false, wallshot = false, bunny = false, ammoh = false, firerate = false, fastk = false, fastbomb = false, ugrenade = false, gnuke = false, mvbfr = false;
 bool isESP = false, ESPSkeleton = false, ESPBox = false, ESPBox2D = false, ESPLine = false, ESPNickname = false, ESPHealth = false;
 bool aimbot = false, aimcheck = false;
 int cradius = 20;
@@ -483,6 +483,9 @@ bool (*IsLocal)(void* photon);
 int (*GetPlayerHealth)(void* player);
 int (*GetHealthPhoton)(void* player);
 void (*SetPlayerHealth)(void* photon, int value);
+void* (*GetBytes)(void*, monoString*);
+monoString* (*GetString)(void*, void*);
+void* (*DefaultEncoding)();
 int (*get_width)();
 int (*get_height)();
 void* myPlayer = nullptr;
@@ -629,6 +632,17 @@ Vec3 GetPlayerrightUpperLeg(void *player) {
 bool isPlayerDead(void *player) {
     if (!valid(player)) return true;
     if (GetPlayerHealth(player) < 1) {
+        return true;
+    }
+    void* photon = GetPhoton(player);
+    if (photon) {
+        try {
+            int hp = GetHealthPhoton(photon);
+            if (hp <= 0) return true;
+        } catch (...) {
+            return true;
+        }
+    } else {
         return true;
     }
     return false;
@@ -965,6 +979,9 @@ FieldInfo* gmginstance;
 Il2CppClass* gamecls;
 FieldInfo* gamefld;
 
+Il2CppClass* plrccls;
+FieldInfo* plrcfld;
+
 Il2CppClass* SafeVector;
 
 void PUpdate() {
@@ -1023,7 +1040,7 @@ void PUpdate() {
                                 void* jmprms = *(void**)((uintptr_t)plrtprms + 0x50);
                                 if (valid(jmprms)) {
                                     if (bunny)
-                                        *(float*)((uintptr_t)jmprms + 0x60) = 2.1f;
+                                        *(float*)((uintptr_t)jmprms + 0x60) = 2.0f;
                                 }
                             }
                         }
@@ -1062,7 +1079,7 @@ float GetDeltaTime() {
 }
 
 float accumulatedTime = 0.0f;
-float delayThreshold = 1.0f;
+float delayThreshold = 1.1f;
 
 MethodInfo* ThrowG;
 int grenadeid = 91;
@@ -1083,6 +1100,31 @@ void GunProcessor() {
                             if (wprm) {
                                 int wpid = *(int*)((uintptr_t)wprm + 0x18);
                                 if (wpid) {
+                                    if (mvbfr) {
+                                        void* playerControls;
+                                        il2cpp_field_static_get_value(plrcfld, &playerControls);
+                                        void(*HClear)(void*,void*);
+                                        void* hset1 = *(void**)((uintptr_t)playerControls + 0x68);
+                                        void* iterr = nullptr;
+                                        while (auto method = il2cpp_class_get_methods(((Il2CppObject*)hset1)->klass, &iterr)) {
+                                            auto type = il2cpp_class_from_type(method->return_type);
+                                            if (equals(type->name, _("Void")) && equals(method->name, _("Clear")) && method->parameters_count == 0) {
+                                                HClear = (void (*)(void*,void*))method->methodPointer;
+                                            }
+                                        }
+                                        void* hset2 = *(void**)((uintptr_t)playerControls + 0x70);
+                                        void* hset3 = *(void**)((uintptr_t)playerControls + 0x78);
+                                        void* hset4 = *(void**)((uintptr_t)playerControls + 0x80);
+                                        void* hset5 = *(void**)((uintptr_t)playerControls + 0x88);
+                                        void* hset6 = *(void**)((uintptr_t)playerControls + 0x90);
+                                        HClear(hset1, nullptr);
+                                        HClear(hset2, nullptr);
+                                        HClear(hset3, nullptr);
+                                        HClear(hset4, nullptr);
+                                        HClear(hset5, nullptr);
+                                        HClear(hset6, nullptr);
+                                        iterr = nullptr;
+                                    }
                                     if (ugrenade || gnuke) {
                                         void* grenadeManager;
                                         il2cpp_field_static_get_value(gmginstance, &grenadeManager);
@@ -1147,7 +1189,14 @@ void GunProcessor() {
                                                     void* float1 = set_sfloat(0);
                                                     void* vec1 = il2cpp_object_new(SafeVector);
                                                     set_svec_ctor(vec1, loct);
-                                                    Throw(grenadeManager, enum1, enum2, int1, int1, vec1, vec1, float1, enum3);
+                                                    void* photon = GetPhoton(myPlayer);
+                                                    if (photon) {
+                                                        if (GetHealthPhoton(photon) > 0) {
+                                                            try {
+                                                                Throw(grenadeManager, enum1, enum2, int1, int1, vec1, vec1, float1, enum3);
+                                                            } catch (...) {}
+                                                        }
+                                                    }
                                                     if (il2cpp_thread_current()) il2cpp_thread_detach(il2cpp_thread_current());
                                                     accumulatedTime = 0.0f;
                                                 }
@@ -1336,8 +1385,14 @@ void EspProcessor() {
                     }
                 }
                 if (ESPNickname) {
-                    std::string nname = string_to_hex(xor_cipher(get_Nickname(GetPhoton(Player))->toChars(), OBFUSCATE("System.Reflection"), true));
-                    playerData.AddMember("nk", rapidjson::Value(nname.c_str(), allocator), allocator);
+                    void* photon = GetPhoton(Player);
+                    if (photon) {
+                        const char* cname = get_Nickname(photon)->toChars();
+                        if (cname) {
+                            std::string nname = string_to_hex(xor_cipher(cname, OBFUSCATE("System.Reflection"), true));
+                            playerData.AddMember("nk", rapidjson::Value(nname.c_str(), allocator), allocator);
+                        }
+                    }
                 }
                 rapidjson::Value rc(rapidjson::kObjectType);
                 rc.AddMember("x", rect.x, allocator);
@@ -1386,10 +1441,6 @@ void gameupdate(void* inst) {
 
 MemoryPatch chamsbp;
 
-void* (*GetBytes)(void*, monoString*);
-monoString* (*GetString)(void*, void*);
-void* (*DefaultEncoding)();
-
 void mnthread() {
     LOGI("PART 1");
 	logger = new FLog(_("/sdcard/Documents/log.txt"));
@@ -1416,16 +1467,6 @@ void mnthread() {
 	} while (!shared_base);
     
     xdl_iterate_phdr(callback_z, NULL, XDL_FULL_PATHNAME);
-    
-    //LOGI(_("start of the universe!.."));
-	
-	//DobbyHook(xdl_sym(xdl_open(_("libGLESv2.so"), XDL_DEFAULT), _("glDrawElements"), NULL), (void*)new_glDrawElements, (void**)&old_glDrawElements);
-    //DobbyHook(xdl_sym(xdl_open(_("libGLESv2.so"), XDL_DEFAULT), _("glGetUniformLocation"), NULL), (void*)new_glGetUniformLocation, (void**)&old_glGetUniformLocation);
-    //DobbyHook(xdl_sym(xdl_open(_("libEGL.so"), XDL_DEFAULT), _("eglSwapBuffers"), NULL), (void *)hook_eglSwapBuffers, (void **)&old_eglSwapBuffers);
-    
-    //Toast(getEnv(), "Loaded!", 1);
-    
-    xdl_iterate_phdr(callback_z, NULL, XDL_FULL_PATHNAME);
 	
 	//LOGI(_("patching! v2"));
     
@@ -1441,8 +1482,6 @@ void mnthread() {
     b4.Modify();
     b5.Modify();*/
 	
-	xdl_iterate_phdr(callback_z, NULL, XDL_FULL_PATHNAME);
-	
 	il2cpp_field_static_get_value = reinterpret_cast<void(*)(FieldInfo*, void*)>(il2cpp_base + 0x2160580);
 	
 	pmgclass = GetClassFromA(_("Assembly-CSharp"), _("Axlebolt.Standoff.Player"), _("PlayerManager"));
@@ -1455,20 +1494,21 @@ void mnthread() {
     gmginstance = il2cpp_class_get_field_from_name(gmgclass, OBFUSCATE("AEGHBEBEFHFFCFC"));
 	LOGI("gmginstance %p", gmginstance);
     
-    gamecls = GetClassFromA(_("Assembly-CSharp"), _("Axlebolt.Standoff.Game"), _("GameManager"));
-    gamefld = il2cpp_class_get_field_from_name(gamecls, OBFUSCATE("AEGHBEBEFHFFCFC"));
+    plrccls = GetClassFromA(_("Assembly-CSharp"), _("Axlebolt.Standoff.Controls"), _("PlayerControls"));
+    LOGI("plrccls %p", plrccls);
+    plrcfld = il2cpp_class_get_field_from_name(plrccls, OBFUSCATE("<FDAHGBFFFGCAEHC>k__BackingField"));
+	LOGI("plrcfld %p", plrcfld);
+    
+    //gamecls = GetClassFromA(_("Assembly-CSharp"), _("Axlebolt.Standoff.Game"), _("GameManager"));
+    //gamefld = il2cpp_class_get_field_from_name(gamecls, OBFUSCATE("AEGHBEBEFHFFCFC"));
 	
     std::string ams[] = {
-        "Assembly-Csharp", "mscorlib", "Bolt.Api",
-        "System", "Bolt", "System.Data", "UnityEngine.CoreModule",
-        "System.Core", "Photon3Unity3D"
+        _("Assembly-Csharp"), _("mscorlib"), _("Bolt.Api"),
+        _("System"), _("Bolt"), _("System.Data"), _("UnityEngine.CoreModule"),
+        _("System.Core"), _("Photon3Unity3D")
     };
-    LOGI("PASSED ARRAY");
     
     if (!il2cpp_thread_current()) il2cpp_thread_attach(il2cpp_domain_get());
-    LOGI("PASSED THROUGHT THREAD CURRENT %p", il2cpp_thread_current);
-    
-    //logger->append("passed thread");
     
     for (auto& asem : ams) {
         auto assemblie = il2cpp_domain_assembly_open(il2cpp_domain_get(), asem.c_str());
@@ -1490,7 +1530,7 @@ void mnthread() {
         monoArray<void*>* items = (monoArray<void*>*)reflectionTypes;
         for (int j = 0; j < items->getCapacity(); ++j) {
             auto klass = il2cpp_class_from_system_type((Il2CppReflectionType*)items->getPointer()[j]);
-            if (equals(klass->name, "Encoding")) {
+            if (equals(klass->name, _("Encoding"))) {
                 void* iter = NULL;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
@@ -1648,7 +1688,7 @@ void mnthread() {
     WeaponWithSkin = GetClassFromName(_(""), _("EBDGACCFEAHAHDD"));
     
     SetWeapon = (void (*)(void*, void*))(il2cpp_base + 0x224AF40);*/
-    SetWeaponID = (void (*)(void*, int))(il2cpp_base + 0x231C1CC);
+    //SetWeaponID = (void (*)(void*, int))(il2cpp_base + 0x231C1CC);
     
     BoltInventoryItemCtor = (void* (*)(void*))(il2cpp_base + 0x2D39984);
     
@@ -1745,6 +1785,8 @@ void mnthread() {
                         ugrenade = data["state"].get<bool>();
 					} else if (equals(RPB(data["name"].dump()), _("gnuke"))) {
                         gnuke = data["state"].get<bool>();
+					} else if (equals(RPB(data["name"].dump()), _("mvbfr"))) {
+                        mvbfr = data["state"].get<bool>();
 					} else if (equals(RPB(data["name"].dump()), _("addskin"))) {
                         void* v_bis = GetBoltIService();
                         if (!valid(v_bis)) continue;

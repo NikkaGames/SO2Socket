@@ -168,6 +168,41 @@ struct monoDictionary {
     TValue operator [](TKey key)  { return Get(key); }
 };
 
+struct HashSetArrayItems {
+    int32_t hashCode;
+    int32_t next;
+    void* value;
+};
+
+struct HashSetArray {
+    void* klass;
+    void* monitor;
+    void* bounds;
+    uintptr_t max_length;
+    HashSetArrayItems m_Items[65535];
+};
+
+struct HashSet {
+    void* klass;
+    void* monitor;
+    void* _buckets;
+    struct HashSetArray* _slots;
+    int32_t _count;
+    int32_t _lastIndex;
+    int32_t _freeList;
+    void* _comparer;
+    int32_t _version;
+    void* _siInfo;
+
+    int32_t getSize() {
+        return _count;
+    }
+
+    void* getItems(int32_t n) {
+        return _slots->m_Items[n].value;
+    }
+};
+
 /*
 Here are some functions to safely get/set values for types from Anti Cheat Toolkit (https://assetstore.unity.com/packages/tools/utilities/anti-cheat-toolkit-10395)
 
