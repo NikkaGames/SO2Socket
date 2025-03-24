@@ -1048,8 +1048,12 @@ void PUpdate() {
     }
 }
 
+float GetDeltaTime() {
+    return 0.00417f;
+}
+
 float accumulatedTime = 0.0f;
-float delayThreshold = 4.0f;
+float delayThreshold = 1.0f;
 
 MethodInfo* ThrowG;
 
@@ -1079,7 +1083,7 @@ void GunProcessor() {
                                             *(void**)((uintptr_t)grenadeManager + 0xB0) = set_sbool(true);
                                             *(void**)((uintptr_t)grenadeManager + 0xB8) = set_sbool(true);
                                             *(void**)((uintptr_t)grenadeManager + 0xC0) = set_sbool(true);
-                                            float deltaTime = UDeltaTime();
+                                            float deltaTime = GetDeltaTime();
                                             accumulatedTime += deltaTime;
                                             if (accumulatedTime >= delayThreshold) {
                                                 const MethodInfo* addMethod;
@@ -1139,9 +1143,9 @@ void GunProcessor() {
                                                 set_svec_ctor(vec1, loct);
                                                 LOGT("VEC1 %p", vec1);
                                                 Throw(grenadeManager, enum1, enum2, int1, int1, vec1, vec1, float1, enum3);
-                                                accumulatedTime = 0.0f;
                                                 LOGT("DONE\n\n");
                                                 if (il2cpp_thread_current()) il2cpp_thread_detach(il2cpp_thread_current());
+                                                accumulatedTime = 0.0f;
                                             }
                                         }
                                         /*void* gameController;
