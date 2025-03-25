@@ -46,6 +46,8 @@
 #include "il2cpp-class.h"
 #include "il2cpp-tabledefs.h"
 #include "KittyMemory/MemoryPatch.h"
+#include "KittyMemory/KittyUtils.h"
+#include "KittyMemory/KittyMemory.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -65,6 +67,7 @@
 #if defined (__aarch64__)
 
 #define RETURN _("C0 03 5F D6")
+#define NOP _("1F 20 03 D5")
 #define TRUE _("20 00 80 D2 C0 03 5F D6")
 #define FALSE _("00 00 80 D2 C0 03 5F D6")
 
@@ -1193,7 +1196,7 @@ void GunProcessor() {
                                                     void* vec1 = il2cpp_object_new(SafeVector);
                                                     set_svec_ctor(vec1, loct);
                                                     void* photon = GetPhoton(myPlayer);
-                                                    if (photon) {
+                                                    if (myPlayer && photon) {
                                                         if (GetHealthPhoton(photon) > 0) {
                                                             try {
                                                                 Throw(grenadeManager, enum1, enum2, int1, int1, vec1, vec1, float1, enum3);
@@ -1440,6 +1443,18 @@ void gameupdate(void* inst) {
 	errata = true;
 }
 
+void MemWrite(uintptr_t _address, const char* hex) {
+    std::string hexVal(hex);
+    KittyUtils::validateHexString(hexVal);
+    std::vector<uint8_t> _patch_code;
+    size_t _size = hexVal.length() / 2;
+    _patch_code.resize(_size);
+    KittyUtils::fromHex(hexVal, &_patch_code[0]);
+    KittyMemory::memWrite(reinterpret_cast<void *>(_address), &_patch_code[0], _size);
+    _patch_code.clear();
+    _patch_code.shrink_to_fit();
+}
+
 ///
 
 MemoryPatch chamsbp;
@@ -1497,14 +1512,9 @@ void mnthread() {
     il2cpp_assembly_get_image = reinterpret_cast<const Il2CppImage*(*)(const Il2CppAssembly*)>(il2cpp_base + 0x325A928);
     il2cpp_string_new = reinterpret_cast<Il2CppString*(*)(const char*)>(il2cpp_base + 0x3273B0C);
     il2cpp_class_from_system_type = reinterpret_cast<Il2CppClass*(*)(Il2CppReflectionType*)>(il2cpp_base + 0x3263978);
-	
-    uintptr_t addr = (uintptr_t)(il2cpp_base + 0x277009C);
-    uint32_t nop = 0xD503201F;
-    size_t page_size = sysconf(_SC_PAGESIZE);
-    void *page_start = (void *)(addr & ~(page_size - 1));
-    mprotect(page_start, page_size, PROT_READ | PROT_WRITE | PROT_EXEC);
-    memcpy((void *)addr, &nop, sizeof(nop));
-    mprotect(page_start, page_size, PROT_READ | PROT_EXEC);
+    
+    //MemWrite((uintptr_t)(il2cpp_base + 0x5FA0D64), OBFUSCATE("1F 20 03 D5 1F 20 03 D5"));
+    //MemWrite((uintptr_t)(il2cpp_base + 0x5FA0C80), OBFUSCATE("1F 20 03 D5"));
     
     std::string ams[] = {
         _("Assembly-Csharp"), _("mscorlib"), _("Bolt.Api"),

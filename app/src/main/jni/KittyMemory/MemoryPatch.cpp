@@ -98,8 +98,7 @@ MemoryPatch MemoryPatch::createWithHex(uintptr_t absolute_address, std::string h
     KittyUtils::fromHex(hex, &patch._patch_code[0]);
 
     // backup current content
-    KittyMemory::memRead(&patch._orig_code[0], reinterpret_cast<const void *>(patch._address),
-                         patch._size);
+    //KittyMemory::memRead(&patch._orig_code[0], reinterpret_cast<const void *>(patch._address), patch._size);
     return patch;
 }
 
