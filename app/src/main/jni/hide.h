@@ -31,5 +31,3 @@ struct Map
 };
 
 bool setMap(Map &map, uint8_t flags);
-
-//#define LDEBUG

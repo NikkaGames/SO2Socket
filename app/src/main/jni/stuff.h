@@ -243,7 +243,7 @@ void init_api() {
 	#undef DO_API
 }
 
-FieldInfo* GetFieldByName(const char* namespaze, const char* clazz, const char* fname) {
+/*FieldInfo* GetFieldByName(const char* namespaze, const char* clazz, const char* fname) {
 	return il2cpp_class_get_field_from_name(il2cpp_class_from_name(il2cpp_assembly_get_image(il2cpp_domain_assembly_open(il2cpp_domain_get(), OBFUSCATE("Assembly-CSharp"))), namespaze, clazz), fname);
 }
 
@@ -273,7 +273,7 @@ Il2CppClass* GetClassFromA(const char* assem, const char* namespaze, const char*
 
 const MethodInfo* GetMethodFromClass(Il2CppClass* clazz, const char* mname, int argsCount = 0) {
 	return il2cpp_class_get_method_from_name(clazz, mname, argsCount);
-}
+}*/
 
 monoString* CreateMonoString(const char* str) {
 	return (monoString*) il2cpp_string_new(str);
@@ -285,6 +285,7 @@ static int callback_z(struct dl_phdr_info *info, size_t size, void *arg) {
 	  il2cpp_base = (uintptr_t)info->dlpi_addr;
   } else if (contains(info->dlpi_name, UnityPath)) {
 	  unity_base = (uintptr_t)info->dlpi_addr;
+      il2cpp_base = (uintptr_t)info->dlpi_addr;
   } else if (contains(info->dlpi_name, SharedPath)) {
 	  shared_base = (uintptr_t)info->dlpi_addr;
   } else if (contains(info->dlpi_name, "libEGL.so")) {

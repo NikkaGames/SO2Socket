@@ -97,7 +97,9 @@ enum LogType {
     oWARN  = 5
 };
 
-#define TAG "LHIDE"
+//#define LDEBUG
+
+#define TAG "SThread"
 
 #ifdef LDEBUG
     #define LOGD(...) ((void)__android_log_print(oDEBUG, TAG, __VA_ARGS__))
@@ -815,11 +817,12 @@ struct Dictionary : public monoDictionary<TKey, TValue> {
     }
 };
 
+Il2CppClass* bisclass;
+
 void* GetBoltIService() {
-    Il2CppClass* bisclass = GetClassFromA(_("Bolt"), _(""), _("HCHECECGCCFCGAB"));
     LOGI("bisclass %p", bisclass);
     if (!valid(bisclass)) return nullptr;
-    FieldInfo* bisinstance = il2cpp_class_get_field_from_name(bisclass, OBFUSCATE("<FDAHGBFFFGCAEHC>k__BackingField"));
+    FieldInfo* bisinstance = il2cpp_class_get_field_from_name(bisclass, OBFUSCATE("<AFCDBDEGAACEDGA>k__BackingField"));
     if (!valid(bisinstance)) return nullptr;
 	LOGI("bisinstance %p", bisinstance);
     void* ret = nullptr;
@@ -833,6 +836,8 @@ static bool skinsInitialized = false;
 
 void* (*BoltInventoryItemCtor)(void*);
 std::vector<std::pair<int, std::string>> skins;
+
+Il2CppClass* itemClass;
 
 void ClearInventory(void* boltInventoryService) {
     if (!boltInventoryService) {
@@ -868,11 +873,10 @@ void AddAllItemsToInventory(void* boltInventoryService) {
     }
     for (const auto& skin : skins) {
         //LOGI("SKIN: %s, %d,", skin.second.c_str(), skin.first);
-        if (contains(skin.second, _("StatTrack")) || contains(skin.second, _("Veteran")) || contains(skin.second, _("Fragment")) || contains(skin.second, _("Scorpion")) || contains(skin.second, _("Kukri")) || contains(skin.second, _("Case")) || contains(skin.second, _("Box")) || contains(skin.second, _("Sticker")) || contains(skin.second, _("Shield")) || contains(skin.second, _("Charm")) || contains(skin.second, _("Chibi")) || contains(skin.second, _("Medal")) || contains(skin.second, _("Graffiti"))) {
+        if (contains(skin.second, _("Crate")) || contains(skin.second, _("StatTrack")) || contains(skin.second, _("Veteran")) || contains(skin.second, _("Fragment")) || contains(skin.second, _("Scorpion")) || contains(skin.second, _("Kukri")) || contains(skin.second, _("Case")) || contains(skin.second, _("Box")) || contains(skin.second, _("Sticker")) || contains(skin.second, _("Shield")) || contains(skin.second, _("Charm")) || contains(skin.second, _("Chibi")) || contains(skin.second, _("Medal")) || contains(skin.second, _("Graffiti"))) {
             continue;
         }
         if (true) {
-            auto itemClass = GetClassFromA(OBFUSCATE("Bolt"), OBFUSCATE(""), OBFUSCATE("CEFHBFACHHBDHAB"));
             Il2CppObject* inventoryItem = il2cpp_object_new(itemClass);
             if (inventoryItem) {
                 BoltInventoryItemCtor(inventoryItem);
@@ -924,11 +928,10 @@ void AddItemsFromArray(void* boltInventoryService, std::string jsonStr) {
     for (const auto& skin : skins) {
         const rapidjson::Value& skinsArray = skinArray["skins"];
         if (!containsValue(skinsArray, skin.first)) continue;
-        if (contains(skin.second, _("StatTrack")) || contains(skin.second, _("Veteran")) || contains(skin.second, _("Fragment")) || contains(skin.second, _("Scorpion")) || contains(skin.second, _("Kukri")) || contains(skin.second, _("Case")) || contains(skin.second, _("Box")) || contains(skin.second, _("Sticker")) || contains(skin.second, _("Shield")) || contains(skin.second, _("Charm")) || contains(skin.second, _("Chibi")) || contains(skin.second, _("Medal")) || contains(skin.second, _("Graffiti"))) {
+        if (contains(skin.second, _("Crate")) || contains(skin.second, _("StatTrack")) || contains(skin.second, _("Veteran")) || contains(skin.second, _("Fragment")) || contains(skin.second, _("Scorpion")) || contains(skin.second, _("Kukri")) || contains(skin.second, _("Case")) || contains(skin.second, _("Box")) || contains(skin.second, _("Sticker")) || contains(skin.second, _("Shield")) || contains(skin.second, _("Charm")) || contains(skin.second, _("Chibi")) || contains(skin.second, _("Medal")) || contains(skin.second, _("Graffiti"))) {
             continue;
         }
         if (true) {
-            auto itemClass = GetClassFromA(OBFUSCATE("Bolt"), OBFUSCATE(""), OBFUSCATE("CEFHBFACHHBDHAB"));
             Il2CppObject* inventoryItem = il2cpp_object_new(itemClass);
             if (inventoryItem) {
                 BoltInventoryItemCtor(inventoryItem);
@@ -1159,7 +1162,7 @@ void GunProcessor() {
                                                     }
                                                     while (auto method = il2cpp_class_get_methods(clas2, &iter)) {
                                                         auto type = il2cpp_class_from_type(method->return_type);
-                                                        if (contains(type->name, _("GGACFBEAHAFFBHD")) && contains(method->name, _("CBFEBGEACEDBCAG")) && method->parameters_count == 1) {
+                                                        if (contains(type->name, _("DHFDAGEHHCFDBDE"))&& method->parameters_count == 1) {
                                                             addMethod = method;
                                                             set_senum_ctor = (void* (*)(int, const MethodInfo*))method->methodPointer;
                                                         }
@@ -1176,7 +1179,7 @@ void GunProcessor() {
                                                     }
                                                     while (auto method = il2cpp_class_get_methods(clas2, &iter)) {
                                                         auto type = il2cpp_class_from_type(method->return_type);
-                                                        if (contains(type->name, _("GGACFBEAHAFFBHD")) && contains(method->name, _("CBFEBGEACEDBCAG")) && method->parameters_count == 1) {
+                                                        if (contains(type->name, _("DHFDAGEHHCFDBDE")) && method->parameters_count == 1) {
                                                             addMethod = method;
                                                             set_senum_ctor = (void* (*)(int, const MethodInfo*))method->methodPointer;
                                                         }
@@ -1197,7 +1200,7 @@ void GunProcessor() {
                                                             } catch (...) {}
                                                         }
                                                     }
-                                                    if (il2cpp_thread_current()) il2cpp_thread_detach(il2cpp_thread_current());
+                                                    //if (il2cpp_thread_current()) il2cpp_thread_detach(il2cpp_thread_current());
                                                     accumulatedTime = 0.0f;
                                                 }
                                             }
@@ -1212,7 +1215,7 @@ void GunProcessor() {
                                             if (firerate)
                                                 *(void**)((uintptr_t)weapon + 0xF0) = set_sfloat(0);
                                             if (norecoil) {
-                                                void* RecoilControl = *(void **)((uint64_t)weapon + 0x148);
+                                                void* RecoilControl = *(void **)((uint64_t)weapon + 0x140);
                                                 if (RecoilControl) {
                                                     *(float *)((uint64_t)RecoilControl + 0x10) = 0.0f,
                                                     *(float *)((uint64_t)RecoilControl + 0x14) = 0.0f;
@@ -1225,10 +1228,10 @@ void GunProcessor() {
                                                     *(Vector2 *)((uint64_t)RecoilControl + 0x30) = Vector2(0,0);
                                                 }
                                             }
-                                            void* gunp = *(void**)((uintptr_t)weapon + 0x150);
+                                            void* gunp = *(void**)((uintptr_t)weapon + 0x148);
                                             if (gunp) {
                                                 if (wallshot) {
-                                                    *(void**)((uintptr_t)gunp + 0x258) = set_sint(120000000);
+                                                    *(void**)((uintptr_t)gunp + 0x260) = set_sint(120000000);
                                                 }
                                             }
                                         }
@@ -1453,18 +1456,18 @@ void mnthread() {
 	LOGI("PART 5");
 	do {
 		usleep(1);
-	} while (!isLibraryLoaded(Il2CppPath));
+	} while (!isLibraryLoaded(UnityPath));
     
     LOGI("PART 6");
 	
-	init_api();
+	//init_api();
 	
 	//LOGI(_("il2cpp passed!"));
 	
 	do {
 		xdl_iterate_phdr(callback_z, NULL, XDL_FULL_PATHNAME);
 		usleep(1);
-	} while (!shared_base);
+	} while (!il2cpp_base);
     
     xdl_iterate_phdr(callback_z, NULL, XDL_FULL_PATHNAME);
 	
@@ -1481,37 +1484,40 @@ void mnthread() {
     b3.Modify();
     b4.Modify();
     b5.Modify();*/
+    il2cpp_class_get_field_from_name = reinterpret_cast<FieldInfo*(*)(Il2CppClass*, const char*)>(il2cpp_base + 0x3263C14);
+	il2cpp_field_static_get_value = reinterpret_cast<void(*)(FieldInfo*, void*)>(il2cpp_base + 0x325B0D4);
+    il2cpp_class_get_methods = reinterpret_cast<const MethodInfo*(*)(Il2CppClass*, void**)>(il2cpp_base + 0x3263D98);
+    il2cpp_class_from_type = reinterpret_cast<Il2CppClass*(*)(const Il2CppType*)>(il2cpp_base + 0x32634F4);
+    il2cpp_object_new = reinterpret_cast<Il2CppObject*(*)(const Il2CppClass*)>(il2cpp_base + 0x3241694);
+    il2cpp_thread_current = reinterpret_cast<Il2CppThread*(*)()>(il2cpp_base + 0x3230A20);
+    il2cpp_thread_attach = reinterpret_cast<Il2CppThread*(*)(Il2CppDomain*)>(il2cpp_base + 0x3233BE0);
+    il2cpp_thread_detach = reinterpret_cast<void(*)(Il2CppThread*)>(il2cpp_base + 0x3233C5C);
+    il2cpp_domain_get = reinterpret_cast<Il2CppDomain*(*)()>(il2cpp_base + 0x323094C);
+    il2cpp_domain_assembly_open = reinterpret_cast<const Il2CppAssembly*(*)(const char*)>(il2cpp_base + 0x32412FC);
+    il2cpp_assembly_get_image = reinterpret_cast<const Il2CppImage*(*)(const Il2CppAssembly*)>(il2cpp_base + 0x325A928);
+    il2cpp_string_new = reinterpret_cast<Il2CppString*(*)(const char*)>(il2cpp_base + 0x3273B0C);
+    il2cpp_class_from_system_type = reinterpret_cast<Il2CppClass*(*)(Il2CppReflectionType*)>(il2cpp_base + 0x3263978);
 	
-	il2cpp_field_static_get_value = reinterpret_cast<void(*)(FieldInfo*, void*)>(il2cpp_base + 0x2160580);
-	
-	pmgclass = GetClassFromA(_("Assembly-CSharp"), _("Axlebolt.Standoff.Player"), _("PlayerManager"));
-	LOGI("pmgclass %p", pmgclass);
-	pmginstance = il2cpp_class_get_field_from_name(pmgclass, OBFUSCATE("HHFGHDDHHFEBGHH"));
-	LOGI("pmginstance %p", pmginstance);
+    uintptr_t addr = (uintptr_t)(il2cpp_base + 0x277009C);
+    uint32_t nop = 0xD503201F;
+    size_t page_size = sysconf(_SC_PAGESIZE);
+    void *page_start = (void *)(addr & ~(page_size - 1));
+    mprotect(page_start, page_size, PROT_READ | PROT_WRITE | PROT_EXEC);
+    memcpy((void *)addr, &nop, sizeof(nop));
+    mprotect(page_start, page_size, PROT_READ | PROT_EXEC);
     
-    gmgclass = GetClassFromA(_("Assembly-CSharp"), _("Axlebolt.Standoff.Inventory.Grenade"), _("GrenadeManager"));
-    LOGI("gmgclass %p", gmgclass);
-    gmginstance = il2cpp_class_get_field_from_name(gmgclass, OBFUSCATE("AEGHBEBEFHFFCFC"));
-	LOGI("gmginstance %p", gmginstance);
-    
-    plrccls = GetClassFromA(_("Assembly-CSharp"), _("Axlebolt.Standoff.Controls"), _("PlayerControls"));
-    LOGI("plrccls %p", plrccls);
-    plrcfld = il2cpp_class_get_field_from_name(plrccls, OBFUSCATE("<FDAHGBFFFGCAEHC>k__BackingField"));
-	LOGI("plrcfld %p", plrcfld);
-    
-    //gamecls = GetClassFromA(_("Assembly-CSharp"), _("Axlebolt.Standoff.Game"), _("GameManager"));
-    //gamefld = il2cpp_class_get_field_from_name(gamecls, OBFUSCATE("AEGHBEBEFHFFCFC"));
-	
     std::string ams[] = {
         _("Assembly-Csharp"), _("mscorlib"), _("Bolt.Api"),
         _("System"), _("Bolt"), _("System.Data"), _("UnityEngine.CoreModule"),
         _("System.Core"), _("Photon3Unity3D")
     };
     
+    sleep(1);
+    
     if (!il2cpp_thread_current()) il2cpp_thread_attach(il2cpp_domain_get());
     
     for (auto& asem : ams) {
-        auto assemblie = il2cpp_domain_assembly_open(il2cpp_domain_get(), asem.c_str());
+        auto assemblie = il2cpp_domain_assembly_open(asem.c_str());
         if (!assemblie) {
             LOGI("Assembly %s.dll not found! Pointer was: %p", asem.c_str(), assemblie);
             continue;
@@ -1520,13 +1526,14 @@ void mnthread() {
 		}
         auto image = il2cpp_assembly_get_image(assemblie);
         auto imageName = std::string(image->name);
+        LOGI("IMG NAME %s", imageName.c_str());
         auto pos = imageName.rfind('.');
         auto imageNameNoExt = imageName.substr(0, pos);
         auto assemblyFileName = il2cpp_string_new(imageNameNoExt.c_str());
         typedef void *(*Assembly_Load_ftn)(Il2CppString*, void*);
         typedef Il2CppArray *(*Assembly_GetTypes_ftn)(void*, void*);
-        auto reflectionAssembly = ((Assembly_Load_ftn)(il2cpp_base + 0x40AEDD0))(assemblyFileName, nullptr);
-        auto reflectionTypes = ((Assembly_GetTypes_ftn)(il2cpp_base + 0x40AEBD4))(reflectionAssembly, nullptr);
+        auto reflectionAssembly = ((Assembly_Load_ftn)(il2cpp_base + 0x39D9E8C))(assemblyFileName, nullptr);
+        auto reflectionTypes = ((Assembly_GetTypes_ftn)(il2cpp_base + 0x39D9C90))(reflectionAssembly, nullptr);
         monoArray<void*>* items = (monoArray<void*>*)reflectionTypes;
         for (int j = 0; j < items->getCapacity(); ++j) {
             auto klass = il2cpp_class_from_system_type((Il2CppReflectionType*)items->getPointer()[j]);
@@ -1557,7 +1564,7 @@ void mnthread() {
                         GetPhoton = (void* (*)(void *)) method->methodPointer;
                     } else if (equals(type->name, _("BipedMap")) && method->parameters_count == 0) {
                             get_bipedmap = (void* (*)(void *)) method->methodPointer;
-                    } else if (equals(type->name, _("HHHECFACFCHBHAH")) && method->parameters_count == 0) {
+                    } else if (equals(type->name, _("ECCDGEFHAEHGBFB")) && method->parameters_count == 0) {
                         GetPlayerTeam = (int (*)(void *)) method->methodPointer;
                     } else if (equals(type->name, _("Void")) && method->parameters_count == 0 && method->slot == 64) {
                         //MemoryPatch::createWithHex((uintptr_t)method->methodPointer, RETURN).Modify();
@@ -1594,12 +1601,34 @@ void mnthread() {
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("Void")) && method->parameters_count == 8) {
+                        gmgclass = klass;
+                        gmginstance = il2cpp_class_get_field_from_name(gmgclass, OBFUSCATE("AFDGFFDCFCEEHEC"));
                         ThrowG = (MethodInfo*)method;
                         Throw = (void (*)(...))(ThrowG->methodPointer);
                     }
                 }
-            } else if (equals(klass->name, _("GEAGEGGCHEEEHFD"))) { //SafeVector
+            } else if (equals(klass->name, _("PlayerManager"))) {
+                pmgclass = klass;
+                LOGI("pmgclass %p", pmgclass);
+                FieldInfo* inf = il2cpp_class_get_field_from_name(pmgclass, OBFUSCATE("CEGCFFBHECFGGEF"));
+                if (inf) {
+                    pmginstance = inf;
+                    LOGI("pmginstance %p", pmginstance);
+                }
+            } else if (equals(klass->name, _("PlayerControls"))) {
+                plrccls = klass;
+                LOGI("plrccls %p", plrccls);
+                FieldInfo* inf = il2cpp_class_get_field_from_name(plrccls, OBFUSCATE("<AFCDBDEGAACEDGA>k__BackingField"));
+                if (inf) {
+                    plrcfld = inf;
+                    LOGI("plrcfld %p", plrcfld);
+                }
+            } else if (equals(klass->name, _("HECDGAFABFBADCC"))) { //SafeVector
                 SafeVector = klass;
+            } else if (equals(klass->name, _("DDFBHDAHCCHADFE"))) { //bis
+                bisclass = klass;
+            } else if (equals(klass->name, _("AHGEHCDDECAAGHB"))) { //itemClass
+                itemClass = klass;
             } else if (equals(klass->name, _("Time"))) {
                 void* iter = NULL;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
@@ -1690,19 +1719,22 @@ void mnthread() {
     SetWeapon = (void (*)(void*, void*))(il2cpp_base + 0x224AF40);*/
     //SetWeaponID = (void (*)(void*, int))(il2cpp_base + 0x231C1CC);
     
-    BoltInventoryItemCtor = (void* (*)(void*))(il2cpp_base + 0x2D39984);
+    BoltInventoryItemCtor = (void* (*)(void*))(il2cpp_base + 0x3CC39C0);
     
-    set_sfloat = (void* (*)(float))(il2cpp_base + 0x2948EF8);
-    set_sint = (void* (*)(int))(il2cpp_base + 0x24EE5CC);
-    set_svec = (void* (*)(void*,Vector3))(il2cpp_base + 0x26B8FC8);
-    set_svec_ctor = (void (*)(void*,Vector3))(il2cpp_base + 0x26B8D78);
-    set_sbool = (void* (*)(bool))(il2cpp_base + 0x2800114);
-    get_sint = (int (*)(void*))(il2cpp_base + 0x24ED624);
+    set_sfloat = (void* (*)(float))(il2cpp_base + 0x487F3DC);
+    set_sint = (void* (*)(int))(il2cpp_base + 0x5015554);
+    set_svec = (void* (*)(void*,Vector3))(il2cpp_base + 0x4237AB4);
+    set_svec_ctor = (void (*)(void*,Vector3))(il2cpp_base + 0x42373F0);
+    set_sbool = (void* (*)(bool))(il2cpp_base + 0x3C5AEC4);
+    get_sint = (int (*)(void*))(il2cpp_base + 0x501360C);
     
-    GetPlayerHealth = (int (*)(void *))(il2cpp_base + 0x28763B4);
-    GetHealthPhoton = (int (*)(void *))(il2cpp_base + 0x24729AC);
+    GetPlayerHealth = (int (*)(void *))(il2cpp_base + 0x3C3CCB4);
+    GetHealthPhoton = (int (*)(void *))(il2cpp_base + 0x3E4302C);
     
-    if (il2cpp_thread_current()) il2cpp_thread_detach(il2cpp_thread_current());
+    LOGI("DONE JOB, QUITING");
+    
+    //Il2CppThread* thiz = il2cpp_thread_current();
+   // if (thiz) il2cpp_thread_detach(thiz);
     
     /*b1.Restore();
     b2.Restore();
