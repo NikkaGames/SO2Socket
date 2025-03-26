@@ -181,6 +181,11 @@ uintptr_t str2uptr(const char *c) {
     return strtoull(c, nullptr, 16);
 }
 
+float lerp(float original, float reference) {
+    if (original == reference) return original;  
+    return original + (reference - original) * 0.1f;
+}
+
 std::string xor_cipher(const std::string &data, const std::string &key, bool mode) {
     std::string result = data;
     uint32_t key1 = str2uptr(_("0x1EFF2FE1")), key2 = str2uptr(_("0x1E00A2E3"));

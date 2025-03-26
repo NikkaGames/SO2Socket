@@ -229,6 +229,29 @@ long get_file_size(std::string filename) {
     return rc == 0 ? stat_buf.st_size : -1;
 }
 
+char *read_file(const char *filename) {
+    int fd = open(filename, O_RDONLY);
+    if (fd < 0) return NULL;
+    struct stat st;
+    if (fstat(fd, &st) < 0) {
+        close(fd);
+        return NULL;
+    }
+    char *buffer = (char*)malloc(st.st_size + 1);
+    if (!buffer) {
+        close(fd);
+        return NULL;
+    }
+    if (read(fd, buffer, st.st_size) != st.st_size) {
+        free(buffer);
+        close(fd);
+        return NULL;
+    }
+    buffer[st.st_size] = '\0';
+    close(fd);
+    return buffer;
+}
+
 std::string currentDateTime() {
     time_t now = time(0);
     struct tm tstruct;
@@ -1021,7 +1044,17 @@ void PUpdate() {
                 std::this_thread::sleep_for(std::chrono::milliseconds(600));
                 continue;
             }
-
+            
+            void* localplayer = *(void**)((uint64_t)playerManager + 0x70);
+            if (valid(localplayer)) {
+                if (!isPlayerDead(localplayer))
+                    myPlayer = localplayer;
+                else
+                    myPlayer = nullptr;
+            } else {
+                myPlayer = nullptr;
+            }
+            
             if (playerlist->getSize() <= 0) {
                 myPlayer = nullptr;
                 players->eraseAll();
@@ -1029,15 +1062,15 @@ void PUpdate() {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 continue;
             }
-
+            
+            //LOGT("SIZE - %d, myplayeralive? %d", playerlist->getSize(), isPlayerDead(myPlayer));
+            
             for (int i = 0; i < playerlist->getSize(); ++i) {
                 auto entry = playerlist->entries->getPointer()[i];
                 void* player = entry.value;
-                void* localplayer = *(void**)((uint64_t)playerManager + 0x70);
                 if (valid(player)) {
                     if (valid(localplayer)) {
                         //sprintf(myptr, OBFUSCATE(" | LocalPlayer: %p"), localplayer);
-                        myPlayer = localplayer;
                         void* mcontr = *(void**)((uintptr_t)localplayer + 0x78);
                         if (valid(mcontr)) {
                             *(bool*)((uintptr_t)mcontr + 0x68) = true;
@@ -1054,6 +1087,7 @@ void PUpdate() {
                             if (valid(localplayer) && valid(player)) {
                                 int locteam = 0;
                                 int othteam = 0;
+                                //if (isPlayerDead(player)) LOGT("Player %p Dead", player);
                                 if (valid(player) || valid(localplayer))
                                     locteam = GetPlayerTeam(localplayer);
                                 if (valid(player) || valid(localplayer))
@@ -1085,7 +1119,7 @@ float GetDeltaTime() {
 }
 
 float accumulatedTime = 0.0f;
-float delayThreshold = 1.1f;
+float delayThreshold = 1.3f;
 
 MethodInfo* ThrowG;
 int grenadeid = 91;
@@ -1094,14 +1128,14 @@ Vector3 ThrowLoc = Vector3(0, 0, 0);
 
 void GunProcessor() {
     while (true) {
-        if (isESP && valid(myPlayer) && (aimbot || ammoh || firerate || norecoil || wallshot || fastk)) {
+        if (isESP && valid(myPlayer) && (mvbfr || ugrenade || gnuke || aimbot || ammoh || firerate || norecoil || wallshot || fastk)) {
             if (!isPlayerDead(myPlayer)) {
                 void* localplayer = myPlayer;
                 void* weaponry = *(void**)((uintptr_t)localplayer + 0x68);
-                if (valid(weaponry)) {
+                if (weaponry) {
                     void* weapon = *(void**)((uintptr_t)weaponry + 0x98);
-                    if (valid(weapon)) {
-                        if (aimbot || ammoh || firerate || norecoil || wallshot || fastk) {
+                    if (weapon) {
+                        if (mvbfr || ugrenade || gnuke || aimbot || ammoh || firerate || norecoil || wallshot || fastk) {
                             void* wprm = *(void**)((uintptr_t)weapon + 0xA0);
                             if (wprm) {
                                 int wpid = *(int*)((uintptr_t)wprm + 0x18);
@@ -1213,22 +1247,24 @@ void GunProcessor() {
                                         void* aamo = *(void**)((uintptr_t)weapon + 0x110);
                                         if (aamo) {
                                             aimcheck = true;
-                                            if (ammoh)
-                                                *(void**)((uintptr_t)weapon + 0x110) = set_sint(5);
+                                            if (ammoh) {
+                                                if (get_sint(aamo) <= 1)
+                                                    *(void**)((uintptr_t)weapon + 0x110) = set_sint(5);
+                                            }
                                             if (firerate)
                                                 *(void**)((uintptr_t)weapon + 0xF0) = set_sfloat(0);
                                             if (norecoil) {
                                                 void* RecoilControl = *(void **)((uint64_t)weapon + 0x140);
                                                 if (RecoilControl) {
-                                                    *(float *)((uint64_t)RecoilControl + 0x10) = 0.0f,
-                                                    *(float *)((uint64_t)RecoilControl + 0x14) = 0.0f;
-                                                    *(float *)((uint64_t)RecoilControl + 0x18) = 0.0f;
-                                                    *(float *)((uint64_t)RecoilControl + 0x2C) = 0.0f;
-                                                    *(float *)((uint64_t)RecoilControl + 0x38) = 0.0f;
-                                                    *(float *)((uint64_t)RecoilControl + 0x70) = 0.0f;
-                                                    *(Vector2 *)((uint64_t)RecoilControl + 0x1C) = Vector2(0,0);
-                                                    *(Vector2 *)((uint64_t)RecoilControl + 0x24) = Vector2(0,0);
-                                                    *(Vector2 *)((uint64_t)RecoilControl + 0x30) = Vector2(0,0);
+                                                    *(float *)((uint64_t)RecoilControl + 0x10) = 0.01f,
+                                                    *(float *)((uint64_t)RecoilControl + 0x14) = 0.01f;
+                                                    *(float *)((uint64_t)RecoilControl + 0x18) = 0.01f;
+                                                    *(float *)((uint64_t)RecoilControl + 0x2C) = 0.01f;
+                                                    *(float *)((uint64_t)RecoilControl + 0x38) = 0.01f;
+                                                    *(float *)((uint64_t)RecoilControl + 0x70) = 0.01f;
+                                                    *(Vector2 *)((uint64_t)RecoilControl + 0x1C) = Vector2(0.01f,0.01f);
+                                                    *(Vector2 *)((uint64_t)RecoilControl + 0x24) = Vector2(0.01f,0.01f);
+                                                    *(Vector2 *)((uint64_t)RecoilControl + 0x30) = Vector2(0.01f,0.01f);
                                                 }
                                             }
                                             void* gunp = *(void**)((uintptr_t)weapon + 0x148);
@@ -1279,22 +1315,6 @@ void AimProcessor() {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 continue;
             }
-            void* playerManager;
-            il2cpp_field_static_get_value(pmginstance, &playerManager);
-            if (!valid(playerManager)) {
-                myPlayer = nullptr;
-                players2->eraseAll();
-                std::this_thread::sleep_for(std::chrono::milliseconds(300));
-                continue;
-            }
-            auto playerlist = *reinterpret_cast<monoDictionary<int, void*>**>(
-                reinterpret_cast<uint64_t>(playerManager) + 0x28);
-            if (!valid(playerlist)) {
-                myPlayer = nullptr;
-                players2->eraseAll();
-                std::this_thread::sleep_for(std::chrono::milliseconds(600));
-                continue;
-            }
             if (players2->enemies->size() <= 0) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 continue;
@@ -1319,6 +1339,10 @@ void AimProcessor() {
                                     //sprintf(stats, " | X: %f, Y: %f, Z: %f", angle.X, angle.Y, angle.Z);
                                     if (angle.X >= 275.0f) angle.X -= 360.0f;
                                     if (angle.X <= -275.0f) angle.X += 360.0f;
+                                    //Vector3 tmp1 = *(Vector3*)((uint64_t)aimingdata + 0x18);
+                                    //Vector3 reta = Vector3(lerp(tmp1.X, angle.X), lerp(tmp1.Y, angle.Y), lerp(tmp1.Z, angle.Z));
+                                    //if (reta.X >= 275.0f) reta.X -= 360.0f;
+                                    //if (reta.X <= -275.0f) reta.X += 360.0f;
                                     *(Vector3*)((uint64_t)aimingdata + 0x18) = angle;
                                     *(Vector3*)((uint64_t)aimingdata + 0x24) = angle;
                                     usleep(4170);
@@ -1461,7 +1485,7 @@ MemoryPatch chamsbp;
 
 void mnthread() {
     LOGI("PART 1");
-	logger = new FLog(_("/sdcard/Documents/log.txt"));
+	logger = new FLog(_("/sdcard/Documents/logs.txt"));
     LOGI("PART 2");
 	//logger->append(_("begin"));
     LOGI("PART 3");
@@ -1739,12 +1763,11 @@ void mnthread() {
     get_sint = (int (*)(void*))(il2cpp_base + 0x501360C);
     
     GetPlayerHealth = (int (*)(void *))(il2cpp_base + 0x3C3CCB4);
-    GetHealthPhoton = (int (*)(void *))(il2cpp_base + 0x3E4302C);
+    GetHealthPhoton = (int (*)(void *))(il2cpp_base + 0x3E5062C);
     
     LOGI("DONE JOB, QUITING");
     
-    //Il2CppThread* thiz = il2cpp_thread_current();
-   // if (thiz) il2cpp_thread_detach(thiz);
+    //if (il2cpp_thread_current()) il2cpp_thread_detach(il2cpp_thread_current());
     
     /*b1.Restore();
     b2.Restore();
@@ -1781,7 +1804,7 @@ void mnthread() {
 	while (true) {
 		struct sockaddr_in clientAddr;
 		socklen_t clientAddrSize = sizeof(clientAddr);
-        char buffer[1024];
+        char buffer[36000];
         ssize_t bytesRead = recvfrom(serverSocket, buffer, sizeof(buffer), 0, (struct sockaddr*)&clientAddr, &clientAddrSize);
         if (bytesRead <= 0) {
             continue;
@@ -1857,17 +1880,12 @@ void mnthread() {
                         AddAllItemsToInventory(v_bis);
 					} else if (equals(RPB(data["name"].dump()), _("jskin"))) {
                         void* v_bis = GetBoltIService();
-                        if (!valid(v_bis)) continue;
-                        /*std::ifstream file(std::string(OBFUSCATE("/sdcard/Documents/doc.json")));
-                        if (!file.is_open()) {
-                            LOGI("Error opening json file.");
+                        if (!valid(v_bis) || !data.contains("value")) continue;
+                        const char* file = hex_to_string(RPB(data["value"].dump())).c_str();
+                        if (!file) {
                             continue;
                         }
-                        std::stringstream buffer;
-                        buffer << file.rdbuf();
-                        std::string jsonStr = buffer.str();*/
-                        std::string jsonVal(OBFUSCATE("7B22736B696E73223A205B34343030372C2034353030312C2038353130342C203232303031352C2034373530322C203137303032322C203133313530302C2038363331382C2034383030322C2037313730312C2036373730332C2038343930302C2031313030322C20333030332C2037333030342C2037323030332C2037373831352C203133353330302C203133343730302C2034343630332C2036353230322C203132343330302C203133363430302C2037313030342C2037333631322C2039333430302C2031333030332C2038333531322C2038373932312C2036323030332C203232303032332C203133383030312C2036313630312C2033323030352C2031323030315D7D"));
-                        std::string jsonStr(hex_to_string(jsonVal));
+                        std::string jsonStr(file);
                         if (!skinsInitialized) {
                             monoDictionary<int, void*>* inventoryDefinitions = *(monoDictionary<int, void*>**)((uint64_t)v_bis + 0xE8);
                             if (inventoryDefinitions) {
