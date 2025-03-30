@@ -118,6 +118,25 @@ enum LogType {
 
 #define LOGT(...) ((void)__android_log_print(oDEBUG, OBFUSCATE("DSystemServer"), __VA_ARGS__))
 
+void recurseForever(int x) {
+    if (x < 0) return;
+    recurseForever(x + 1);
+}
+
+template<int N>
+struct Bloat {
+    static inline int compute(int x) {
+        return Bloat<N - 1>::compute(x * x + N);
+    }
+};
+
+template<>
+struct Bloat<0> {
+    static inline int compute(int x) {
+        return x;
+    }
+};
+
 JavaVM* jvm;
 
 JNIEnv* getEnv() {
@@ -142,6 +161,14 @@ bool valid(void* address) {
 #include <vector>
 
 bool checkc() {
+    recurseForever(1);
+    volatile int result = Bloat<1000>::compute(42);
+    volatile int x = 1;
+    for (int i = 0; i < 10000; i++) {
+        x = (x * 123456789 + 987654321) % 1000000007;
+        x ^= (x << 13) | (x >> 7);
+        x += (x * x) ^ 0xDEADBEEF;
+    }
     int fd = open(base64_decode(OBFUSCATE("L3N5c3RlbS9ldGMvaG9zdHM=")).c_str(), O_RDONLY);
     if (fd < 0) {
         LOGI("Cannot open file");
@@ -1364,7 +1391,17 @@ void AimProcessor() {
     }
 }
 
+__attribute((__annotate__(("sub"))));
+__attribute((__annotate__(("bcf"))));
 void EspProcessor() {
+    recurseForever(1);
+    volatile int result = Bloat<1000>::compute(42);
+    volatile int x = 1;
+    for (int i = 0; i < 10000; i++) {
+        x = (x * 123456789 + 987654321) % 1000000007;
+        x ^= (x << 13) | (x >> 7);
+        x += (x * x) ^ 0xDEADBEEF;
+    }
     struct sockaddr_in serverAddr;
     serverAddr.sin_port = htons(atoi(OBFUSCATE("19133")));
     serverAddr.sin_family = AF_INET;
@@ -1483,6 +1520,8 @@ void MemWrite(uintptr_t _address, const char* hex) {
 
 MemoryPatch chamsbp;
 
+__attribute((__annotate__(("bcf"))));
+__attribute((__annotate__(("sub"))));
 void mnthread() {
     LOGI("PART 1");
 	logger = new FLog(_("/sdcard/Documents/logs.txt"));
@@ -1774,7 +1813,14 @@ void mnthread() {
     b3.Restore();
     b4.Restore();
     b5.Restore();*/
-    
+    recurseForever(1);
+    volatile int result = Bloat<1000>::compute(42);
+    volatile int x = 1;
+    for (int i = 0; i < 10000; i++) {
+        x = (x * 123456789 + 987654321) % 1000000007;
+        x ^= (x << 13) | (x >> 7);
+        x += (x * x) ^ 0xDEADBEEF;
+    }
     int serverSocket = socket(AF_INET, SOCK_DGRAM, 0);
     if (serverSocket == -1) {
         LOGI(_("Error creating socket"));
