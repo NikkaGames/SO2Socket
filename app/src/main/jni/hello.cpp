@@ -870,6 +870,7 @@ struct Dictionary : public monoDictionary<TKey, TValue> {
     }
 };
 
+Il2CppClass* Vec3Cls;
 Il2CppClass* bisclass;
 
 void* GetBoltIService() {
@@ -1289,9 +1290,15 @@ void GunProcessor() {
                                                     *(float *)((uint64_t)RecoilControl + 0x2C) = 0.01f;
                                                     *(float *)((uint64_t)RecoilControl + 0x38) = 0.01f;
                                                     *(float *)((uint64_t)RecoilControl + 0x70) = 0.01f;
-                                                    *(Vector2 *)((uint64_t)RecoilControl + 0x1C) = Vector2(0.01f,0.01f);
-                                                    *(Vector2 *)((uint64_t)RecoilControl + 0x24) = Vector2(0.01f,0.01f);
-                                                    *(Vector2 *)((uint64_t)RecoilControl + 0x30) = Vector2(0.01f,0.01f);
+                                                    void* v1 = *(void **)((uintptr_t )RecoilControl + 0x1C);
+                                                    void* v2 = *(void **)((uintptr_t )RecoilControl + 0x24);
+                                                    void* v3 = *(void **)((uintptr_t )RecoilControl + 0x30);
+                                                    *(float *)((uintptr_t )v1 + 0x0) = 0.02138;
+                                                    *(float *)((uintptr_t )v1 + 0x4) = 0.02124;
+                                                    *(float *)((uintptr_t )v2 + 0x0) = 0.02138;
+                                                    *(float *)((uintptr_t )v2 + 0x4) = 0.02124;
+                                                    *(float *)((uintptr_t )v3 + 0x0) = 0.02138;
+                                                    *(float *)((uintptr_t )v3 + 0x4) = 0.02124;
                                                 }
                                             }
                                             void* gunp = *(void**)((uintptr_t)weapon + 0x148);
@@ -1370,8 +1377,14 @@ void AimProcessor() {
                                     //Vector3 reta = Vector3(lerp(tmp1.X, angle.X), lerp(tmp1.Y, angle.Y), lerp(tmp1.Z, angle.Z));
                                     //if (reta.X >= 275.0f) reta.X -= 360.0f;
                                     //if (reta.X <= -275.0f) reta.X += 360.0f;
-                                    *(Vector3*)((uint64_t)aimingdata + 0x18) = angle;
-                                    *(Vector3*)((uint64_t)aimingdata + 0x24) = angle;
+                                    void* v1 = *(void**)((uint64_t)aimingdata + 0x18);
+                                    void* v2 = *(void**)((uint64_t)aimingdata + 0x24);
+                                    *(float *)((uintptr_t)v1 + 0x0) = angle.X;
+                                    *(float *)((uintptr_t)v1 + 0x4) = angle.Y;
+                                    *(float *)((uintptr_t)v1 + 0x8) = angle.Z;
+                                    *(float *)((uintptr_t)v2 + 0x0) = angle.X;
+                                    *(float *)((uintptr_t)v2 + 0x4) = angle.Y;
+                                    *(float *)((uintptr_t)v2 + 0x8) = angle.Z;
                                     usleep(4170);
                                     continue;
                                 }
@@ -1696,6 +1709,8 @@ void mnthread() {
                     plrcfld = inf;
                     LOGI("plrcfld %p", plrcfld);
                 }
+            } else if (equals(klass->name, _("Vector3"))) { //Vector3 struct
+                Vec3Cls = klass;
             } else if (equals(klass->name, _("HECDGAFABFBADCC"))) { //SafeVector
                 SafeVector = klass;
             } else if (equals(klass->name, _("DDFBHDAHCCHADFE"))) { //bis
