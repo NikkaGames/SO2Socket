@@ -1142,6 +1142,13 @@ void PUpdate() {
     }
 }
 
+float genfrand() {
+    srand((unsigned int)time(NULL));
+    float min = 0.0113812f;
+    float max = 0.0223812f;
+    return min + ((float)rand() / RAND_MAX) * (max - min);
+}
+
 float GetDeltaTime() {
     return 0.00417f;
 }
@@ -1284,21 +1291,24 @@ void GunProcessor() {
                                             if (norecoil) {
                                                 void* RecoilControl = *(void **)((uint64_t)weapon + 0x140);
                                                 if (RecoilControl) {
-                                                    *(float *)((uint64_t)RecoilControl + 0x10) = 0.01f,
-                                                    *(float *)((uint64_t)RecoilControl + 0x14) = 0.01f;
-                                                    *(float *)((uint64_t)RecoilControl + 0x18) = 0.01f;
-                                                    *(float *)((uint64_t)RecoilControl + 0x2C) = 0.01f;
-                                                    *(float *)((uint64_t)RecoilControl + 0x38) = 0.01f;
-                                                    *(float *)((uint64_t)RecoilControl + 0x70) = 0.01f;
-                                                    void* v1 = *(void **)((uintptr_t )RecoilControl + 0x1C);
-                                                    void* v2 = *(void **)((uintptr_t )RecoilControl + 0x24);
-                                                    void* v3 = *(void **)((uintptr_t )RecoilControl + 0x30);
-                                                    *(float *)((uintptr_t )v1 + 0x0) = 0.02138;
-                                                    *(float *)((uintptr_t )v1 + 0x4) = 0.02124;
-                                                    *(float *)((uintptr_t )v2 + 0x0) = 0.02138;
-                                                    *(float *)((uintptr_t )v2 + 0x4) = 0.02124;
-                                                    *(float *)((uintptr_t )v3 + 0x0) = 0.02138;
-                                                    *(float *)((uintptr_t )v3 + 0x4) = 0.02124;
+                                                    *(float *)((uint64_t)RecoilControl + 0x10) = genfrand(),
+                                                    *(float *)((uint64_t)RecoilControl + 0x14) = genfrand();
+                                                    *(float *)((uint64_t)RecoilControl + 0x18) = genfrand();
+                                                    *(float *)((uint64_t)RecoilControl + 0x2C) = genfrand();
+                                                    *(float *)((uint64_t)RecoilControl + 0x38) = genfrand();
+                                                    *(float *)((uint64_t)RecoilControl + 0x70) = genfrand();
+                                                    Vector2 v1 = *(Vector2 *)((uintptr_t )RecoilControl + 0x1C);
+                                                    Vector2 v2 = *(Vector2 *)((uintptr_t )RecoilControl + 0x24);
+                                                    Vector2 v3 = *(Vector2 *)((uintptr_t )RecoilControl + 0x30);
+                                                    *(float *)((uintptr_t )&v1.x) = genfrand();
+                                                    *(float *)((uintptr_t )&v1.y) = genfrand();
+                                                    *(float *)((uintptr_t )&v2.x) = genfrand();
+                                                    *(float *)((uintptr_t )&v2.y) = genfrand();
+                                                    *(float *)((uintptr_t )&v3.x) = genfrand();
+                                                    *(float *)((uintptr_t )&v3.y) = genfrand();
+                                                    *(Vector2 *)((uintptr_t )RecoilControl + 0x1C) = v1;
+                                                    *(Vector2 *)((uintptr_t )RecoilControl + 0x24) = v2;
+                                                    *(Vector2 *)((uintptr_t )RecoilControl + 0x30) = v3;
                                                 }
                                             }
                                             void* gunp = *(void**)((uintptr_t)weapon + 0x148);
@@ -1361,7 +1371,7 @@ void AimProcessor() {
                         if (valid(ePlayer)) {
                             if (!isPlayerDead(ePlayer)) {
                                 Vector3S camloc = Vector3S(GetPlayerLocation(GetCamera()).X, GetPlayerLocation(GetCamera()).Y, GetPlayerLocation(GetCamera()).Z);
-                                Vec3 headpos = GetPlayerHead(ePlayer);
+                                Vec3 headpos = GetPlayerNeck(ePlayer);
                                 Vector3S target = (Vector3S(headpos.x, headpos.y, headpos.z) + Vector3S(0, 0, 0)) - camloc;
                                 float aimAngle = Vector3S::Angle(target, get_for(Get_transform(GetCamera())) * 100);
                                 void* player_character_view = *(void **)((uint64_t)ePlayer + 0x48);
@@ -1377,14 +1387,16 @@ void AimProcessor() {
                                     //Vector3 reta = Vector3(lerp(tmp1.X, angle.X), lerp(tmp1.Y, angle.Y), lerp(tmp1.Z, angle.Z));
                                     //if (reta.X >= 275.0f) reta.X -= 360.0f;
                                     //if (reta.X <= -275.0f) reta.X += 360.0f;
-                                    void* v1 = *(void**)((uint64_t)aimingdata + 0x18);
-                                    void* v2 = *(void**)((uint64_t)aimingdata + 0x24);
-                                    *(float *)((uintptr_t)v1 + 0x0) = angle.X;
-                                    *(float *)((uintptr_t)v1 + 0x4) = angle.Y;
-                                    *(float *)((uintptr_t)v1 + 0x8) = angle.Z;
-                                    *(float *)((uintptr_t)v2 + 0x0) = angle.X;
-                                    *(float *)((uintptr_t)v2 + 0x4) = angle.Y;
-                                    *(float *)((uintptr_t)v2 + 0x8) = angle.Z;
+                                    Vector3 v1 = *(Vector3*)((uint64_t)aimingdata + 0x18);
+                                    Vector3 v2 = *(Vector3*)((uint64_t)aimingdata + 0x24);
+                                    *(float *)((uintptr_t)&v1.X) = angle.X + genfrand();
+                                    *(float *)((uintptr_t)&v1.Y) = angle.Y + genfrand();
+                                    *(float *)((uintptr_t)&v1.Z) = angle.Z + genfrand();
+                                    *(float *)((uintptr_t)&v2.X) = angle.X + genfrand();
+                                    *(float *)((uintptr_t)&v2.Y) = angle.Y + genfrand();
+                                    *(float *)((uintptr_t)&v2.Z) = angle.Z + genfrand();
+                                    *(Vector3*)((uint64_t)aimingdata + 0x18) = v1;
+                                    *(Vector3*)((uint64_t)aimingdata + 0x24) = v2;
                                     usleep(4170);
                                     continue;
                                 }
