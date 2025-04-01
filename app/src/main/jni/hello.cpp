@@ -32,6 +32,8 @@
 #include <openssl/err.h>
 #include <openssl/md5.h>
 
+#include <sys/syscall.h>
+
 #include "AES.h"
 #include "base64.h"
 #include "dobby.h"
@@ -1541,7 +1543,22 @@ void MemWrite(uintptr_t _address, const char* hex) {
     _patch_code.shrink_to_fit();
 }
 
+void* nigger() {
+    return nullptr;
+}
+
 ///
+
+void nullpatch(uintptr_t addr) {
+    uintptr_t func_addr = addr;
+    uint8_t patch_code[] = { 0x00, 0x00, 0x80, 0xD2,  // MOV X0, #0
+                              0xC0, 0x03, 0x5F, 0xD6 }; // RET
+    size_t page_size = sysconf(_SC_PAGESIZE);
+    void *page_start = (void *)(func_addr & ~(page_size - 1));
+    mprotect(page_start, page_size, PROT_READ | PROT_WRITE | PROT_EXEC);
+    memcpy((void *)func_addr, patch_code, sizeof(patch_code));
+    mprotect(page_start, page_size, PROT_READ | PROT_EXEC);
+}
 
 MemoryPatch chamsbp;
 
@@ -1600,6 +1617,11 @@ void mnthread() {
     il2cpp_assembly_get_image = reinterpret_cast<const Il2CppImage*(*)(const Il2CppAssembly*)>(il2cpp_base + 0x325A928);
     il2cpp_string_new = reinterpret_cast<Il2CppString*(*)(const char*)>(il2cpp_base + 0x3273B0C);
     il2cpp_class_from_system_type = reinterpret_cast<Il2CppClass*(*)(Il2CppReflectionType*)>(il2cpp_base + 0x3263978);
+    
+    //nullpatch((il2cpp_base + 0x38DE914));
+    //nullpatch((il2cpp_base + 0x38DE674));
+    //nullpatch((il2cpp_base + 0x38DE64C));
+    nullpatch((il2cpp_base + 0x38DE7C4));
     
     //MemWrite((uintptr_t)(il2cpp_base + 0x5FA0D64), OBFUSCATE("1F 20 03 D5 1F 20 03 D5"));
     //MemWrite((uintptr_t)(il2cpp_base + 0x5FA0C80), OBFUSCATE("1F 20 03 D5"));

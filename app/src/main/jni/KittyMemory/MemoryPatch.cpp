@@ -98,13 +98,12 @@ MemoryPatch MemoryPatch::createWithHex(uintptr_t absolute_address, std::string h
     KittyUtils::fromHex(hex, &patch._patch_code[0]);
 
     // backup current content
-    //KittyMemory::memRead(&patch._orig_code[0], reinterpret_cast<const void *>(patch._address), patch._size);
+    KittyMemory::memRead(&patch._orig_code[0], reinterpret_cast<const void *>(patch._address), patch._size);
     return patch;
 }
 
 bool MemoryPatch::isValid() const {
-    return (_address != 0 && _size > 0
-            && _orig_code.size() == _size && _patch_code.size() == _size);
+    return (_address != 0 && _size > 0 && _patch_code.size() == _size);
 }
 
 size_t MemoryPatch::get_PatchSize() const {
