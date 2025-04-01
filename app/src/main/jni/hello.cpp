@@ -26,19 +26,12 @@
 #include <csignal>
 #include <sys/system_properties.h>
 
-#include <openssl/evp.h>
-#include <openssl/pem.h>
-#include <openssl/rsa.h>
-#include <openssl/err.h>
-#include <openssl/md5.h>
-
 #include <sys/syscall.h>
 
 #include "AES.h"
 #include "base64.h"
 #include "dobby.h"
 #include "FLog.h"
-#include "curl/curl.h"
 #include "hide.h"
 #include "json.hpp"
 #include "NikkaH/NikkaH.hpp"
@@ -290,112 +283,6 @@ std::string currentDateTime() {
     return buf;
 }
 
-static size_t writebytes(void *data, size_t size, size_t nmemb, void *userp) {
-    size_t realsize = size * nmemb;
-    std::string *str = static_cast<std::string*>(userp);
-    str->append(static_cast<char*>(data), realsize);
-    return realsize;
-}
-
-std::string get_url(const char* site) {
-    CURL *curl = curl_easy_init();
-    std::string datastr;
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, site);
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_DEFAULT_PROTOCOL, std::string(OBFUSCATE("https")).c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &writebytes);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &datastr);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-        CURLcode res = curl_easy_perform(curl);
-		char *url = NULL;
-        curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &url);
-        if (!equals(url, site)) return std::string(OBFUSCATE("0"));
-        curl_easy_cleanup(curl);
-    }
-    return datastr;
-}
-
-std::string send_header(const char* site, const char* content) {
-    CURL *curl = curl_easy_init();
-    std::string datastr;
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, site);
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_DEFAULT_PROTOCOL, std::string(OBFUSCATE("https")).c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &writebytes);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &datastr);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-        struct curl_slist *chunk = NULL;
-        chunk = curl_slist_append(chunk, OBFUSCATE("Content-Type: text/plain"));
-        chunk = curl_slist_append(chunk, OBFUSCATE("ngrok-skip-browser-warning: true"));
-        std::string ctc(string(OBFUSCATE("Value: ")) + string(content));
-        chunk = curl_slist_append(chunk, ctc.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-        CURLcode res = curl_easy_perform(curl);
-		char *url = NULL;
-        curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &url);
-        if (!equals(url, site)) return std::string(OBFUSCATE("0"));
-        curl_easy_cleanup(curl);
-        curl_slist_free_all(chunk);
-    }
-    return datastr;
-}
-
-std::string CalcMD5(std::string s) {
-    std::string result;
-
-    unsigned char hash[MD5_DIGEST_LENGTH];
-    char tmp[4];
-
-    MD5_CTX md5;
-    MD5_Init(&md5);
-    MD5_Update(&md5, s.c_str(), s.length());
-    MD5_Final(hash, &md5);
-    for (unsigned char i : hash) {
-        sprintf(tmp, OBFUSCATE("%02x"), i);
-        result += tmp;
-    }
-    return result;
-}
-
-std::string CalcSHA256(std::string s) {
-    std::string result;
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-    char tmp[4];
-    SHA256_CTX sha256;
-    SHA256_Init(&sha256);
-    SHA256_Update(&sha256, s.c_str(), s.length());
-    SHA256_Final(hash, &sha256);
-    for (unsigned char i : hash) {
-        sprintf(tmp, OBFUSCATE("%02x"), i);
-        result += tmp;
-    }
-    return result;
-}
-
-struct MemoryStruct {
-    char *memory;
-    size_t size;
-};
-
-static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp) {
-    size_t realsize = size * nmemb;
-    auto *mem = (struct MemoryStruct *) userp;
-    mem->memory = (char *) realloc(mem->memory, mem->size + realsize + 1);
-    if (mem->memory == nullptr) {
-        return 0;
-    }
-    memcpy(&(mem->memory[mem->size]), contents, realsize);
-    mem->size += realsize;
-    mem->memory[mem->size] = 0;
-
-    return realsize;
-}
-
 std::string random_string(int length) {
     const std::string alphabet = OBFUSCATE("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
     std::string result;
@@ -416,114 +303,6 @@ bool bValid = false;
 static bool show;
 bool login_remember = false;
 bool auto_click = false;
-
-static std::string _auth = "";
-static std::string _token = "";
-static bool _userHasLogin = false;
-static std::string _keys = "";
-bool _risk_fiture;
-std::string userKey;
-int _version;
-int _clientVersion = 9;
-int modVersion = 9;
-std::string _keys_id;
-std::string _devices;
-
-
-std::string Login(const char *user_key) {
-    using json = nlohmann::ordered_json;
-    std::string userkey_in_string(user_key);
-    char build_id[64] = {0};
-    __system_property_get(OBFUSCATE("ro.build.display.id"), build_id);
-    char build_hardware[64] = {0};
-    __system_property_get(OBFUSCATE("ro.hardware"), build_hardware);
-    std::string bKeyID;
-    bKeyID.reserve(128);
-    bKeyID += build_id;
-    bKeyID += build_hardware;
-
-    if (!bKeyID.empty()) {
-        size_t pos = bKeyID.find(' ');
-        while (pos != std::string::npos) {
-            bKeyID.replace(pos, 1, "");
-            pos = bKeyID.find(' ', pos);
-        }
-    }
-    std::string UUID = bKeyID;
-    std::string errMsg;
-    struct MemoryStruct chunk {};
-    chunk.memory = (char *)malloc(1);
-    chunk.size = 0;
-
-    CURL *curl = curl_easy_init();
-    if (!curl) {
-        return "CURL initialization failed";
-    }
-    
-    CURLcode res;
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
-    std::string sRedLink = OBFUSCATE("https://modkey.space/223/connect");
-    curl_easy_setopt(curl, CURLOPT_URL, sRedLink.c_str());
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-    struct curl_slist *headers = NULL;
-    headers = curl_slist_append(headers, OBFUSCATE("Content-Type: application/x-www-form-urlencoded"));
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-    char data[4096];
-    sprintf(data, OBFUSCATE("game=Standoff2&user_key=%s&serial=%s"), user_key, UUID.c_str());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
-
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-
-    res = curl_easy_perform(curl);
-    if (res == CURLE_OK) {
-        try {
-            auto result = json::parse(chunk.memory);
-
-            // Проверяем наличие ключа "status" и его значение
-            if (result.contains("status") && result["status"].is_boolean() && result["status"]) {
-                if (result.contains("data") && result["data"].is_object()) {
-                    auto dataObj = result["data"];
-
-                    if (dataObj.contains("token") && dataObj["token"].is_string()) {
-                        std::string token = dataObj["token"];
-                        g_Token = token;
-                    }
-
-                    if (dataObj.contains("rng") && dataObj["rng"].is_number_integer()) {
-                        time_t rng = dataObj["rng"];
-                        if (rng + 30 > time(0)) {
-                            std::string auth = "Standoff2-" + userkey_in_string + "-" + UUID;
-                            auth += "-Vm8Lk7Uj2JmsjCPVPVjrLa7zgfx3uz9E";
-                            g_Auth = CalcMD5(auth);
-                            bValid = (g_Token == g_Auth);
-                        }
-                    }
-                }
-            } else {
-                errMsg = result.contains("reason") && result["reason"].is_string()
-                             ? result["reason"]
-                             : "Unknown error occurred";
-            }
-        } catch (json::exception &e) {
-            errMsg = "{";
-            errMsg += e.what();
-            errMsg += "}\n{";
-            errMsg += chunk.memory;
-            errMsg += "}";
-        }
-    } else {
-        errMsg = curl_easy_strerror(res);
-    }
-
-    curl_easy_cleanup(curl);
-    free(chunk.memory);
-    return bValid ? "OK" : errMsg;
-}
 
 /*void* get_GameInstance() {
     void* ret;
