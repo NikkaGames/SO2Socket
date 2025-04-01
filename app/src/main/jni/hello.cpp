@@ -1400,7 +1400,8 @@ void mnthread() {
     //nullpatch((il2cpp_base + 0x38DE914));
     //nullpatch((il2cpp_base + 0x38DE674));
     //nullpatch((il2cpp_base + 0x38DE64C));
-    nullpatch((il2cpp_base + 0x38DE7C4));
+    
+    //nullpatch((il2cpp_base + 0x38DE7C4));
     
     //MemWrite((uintptr_t)(il2cpp_base + 0x5FA0D64), OBFUSCATE("1F 20 03 D5 1F 20 03 D5"));
     //MemWrite((uintptr_t)(il2cpp_base + 0x5FA0C80), OBFUSCATE("1F 20 03 D5"));
