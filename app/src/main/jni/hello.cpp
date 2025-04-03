@@ -155,6 +155,10 @@ bool valid(void* address) {
 #include <sys/stat.h>
 #include <vector>
 
+__attribute((__annotate__(("sub"))));
+__attribute((__annotate__(("bcf"))));
+__attribute((__annotate__(("split"))));
+__attribute((__annotate__(("fla"))));
 bool checkc() {
     recurseForever(1);
     volatile int result = Bloat<1000>::compute(42);
@@ -695,6 +699,10 @@ void ClearInventory(void* boltInventoryService) {
     (((void (*)(void *))(clearMethod->methodPointer)))(InventoryItems);
 }
 
+__attribute((__annotate__(("sub"))));
+__attribute((__annotate__(("bcf"))));
+__attribute((__annotate__(("split"))));
+__attribute((__annotate__(("fla"))));
 void AddAllItemsToInventory(void* boltInventoryService) {
     if (!valid(boltInventoryService)) {
         return;
@@ -737,6 +745,10 @@ void AddAllItemsToInventory(void* boltInventoryService) {
     }
 }
 
+__attribute((__annotate__(("sub"))));
+__attribute((__annotate__(("bcf"))));
+__attribute((__annotate__(("split"))));
+__attribute((__annotate__(("fla"))));
 void AddItemsFromArray(void* boltInventoryService, std::string jsonStr) {
     if (!valid(boltInventoryService)) {
         return;
@@ -942,6 +954,10 @@ int grenadeid = 91;
 
 Vector3 ThrowLoc = Vector3(0, 0, 0);
 
+__attribute((__annotate__(("sub"))));
+__attribute((__annotate__(("bcf"))));
+__attribute((__annotate__(("split"))));
+__attribute((__annotate__(("fla"))));
 void GunProcessor() {
     while (true) {
         if (isESP && valid(myPlayer) && (mvbfr || ugrenade || gnuke || aimbot || ammoh || firerate || norecoil || wallshot || fastk)) {
@@ -1129,6 +1145,10 @@ void GunProcessor() {
     }
 }
 
+__attribute((__annotate__(("sub"))));
+__attribute((__annotate__(("bcf"))));
+__attribute((__annotate__(("split"))));
+__attribute((__annotate__(("fla"))));
 void AimProcessor() {
     while (true) {
         if (isESP && aimbot && aimcheck) {
@@ -1197,8 +1217,6 @@ void AimProcessor() {
     }
 }
 
-__attribute((__annotate__(("sub"))));
-__attribute((__annotate__(("bcf"))));
 void EspProcessor() {
     recurseForever(1);
     volatile int result = Bloat<1000>::compute(42);
@@ -1278,6 +1296,7 @@ void EspProcessor() {
             }
         }
         Enemies.AddMember("size", realc, allocator);
+        Enemies.AddMember(rapidjson::Value(std::string(_("time")).c_str(), allocator), rapidjson::Value(std::to_string(time(NULL)).c_str(), allocator), allocator);
         rapidjson::StringBuffer buffer;
         rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
         Enemies.Accept(writer);
@@ -1322,10 +1341,6 @@ void MemWrite(uintptr_t _address, const char* hex) {
     _patch_code.shrink_to_fit();
 }
 
-void* nigger() {
-    return nullptr;
-}
-
 ///
 
 void nullpatch(uintptr_t addr) {
@@ -1339,10 +1354,25 @@ void nullpatch(uintptr_t addr) {
     mprotect(page_start, page_size, PROT_READ | PROT_EXEC);
 }
 
+__attribute((__annotate__(("sub"))));
+__attribute((__annotate__(("bcf"))));
+__attribute((__annotate__(("split"))));
+__attribute((__annotate__(("fla"))));
+bool compare(const std::string &s1, const std::string &s2) {
+    if (s1.length() != s2.length()) return false;
+    int result = 0;
+    for (size_t i = 0; i < s1.length(); i++) {
+        result |= (s1[i] ^ s2[i]);
+    }
+    return result == 0;
+}
+
 MemoryPatch chamsbp;
 
-__attribute((__annotate__(("bcf"))));
 __attribute((__annotate__(("sub"))));
+__attribute((__annotate__(("bcf"))));
+__attribute((__annotate__(("split"))));
+__attribute((__annotate__(("fla"))));
 void mnthread() {
     LOGI("PART 1");
 	logger = new FLog(_("/sdcard/Documents/logs.txt"));
@@ -1688,6 +1718,11 @@ void mnthread() {
         std::string dval(xor_cipher(hex_to_string(std::string(buffer)), OBFUSCATE("System.Reflection"), false));
 			if (contains(dval, _("event"))) {
 				json data = json::parse(dval);
+                switch (compare(RPB(data[(const char*)_("time")].dump()), std::to_string(time(NULL)))) {
+                    case 0: {
+                        continue;
+                    }
+                }
 				if (equals(RPB(data["event"].dump()), _("button"))) {
 					if (equals(RPB(data["name"].dump()), _("chams"))) {
 						glow = data["state"].get<bool>();
