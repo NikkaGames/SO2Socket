@@ -1413,19 +1413,19 @@ void mnthread() {
     b3.Modify();
     b4.Modify();
     b5.Modify();*/
-    il2cpp_class_get_field_from_name = reinterpret_cast<FieldInfo*(*)(Il2CppClass*, const char*)>(il2cpp_base + 0x3263C14);
-	il2cpp_field_static_get_value = reinterpret_cast<void(*)(FieldInfo*, void*)>(il2cpp_base + 0x325B0D4);
-    il2cpp_class_get_methods = reinterpret_cast<const MethodInfo*(*)(Il2CppClass*, void**)>(il2cpp_base + 0x3263D98);
-    il2cpp_class_from_type = reinterpret_cast<Il2CppClass*(*)(const Il2CppType*)>(il2cpp_base + 0x32634F4);
-    il2cpp_object_new = reinterpret_cast<Il2CppObject*(*)(const Il2CppClass*)>(il2cpp_base + 0x3241694);
-    il2cpp_thread_current = reinterpret_cast<Il2CppThread*(*)()>(il2cpp_base + 0x3230A20);
-    il2cpp_thread_attach = reinterpret_cast<Il2CppThread*(*)(Il2CppDomain*)>(il2cpp_base + 0x3233BE0);
-    il2cpp_thread_detach = reinterpret_cast<void(*)(Il2CppThread*)>(il2cpp_base + 0x3233C5C);
-    il2cpp_domain_get = reinterpret_cast<Il2CppDomain*(*)()>(il2cpp_base + 0x323094C);
-    il2cpp_domain_assembly_open = reinterpret_cast<const Il2CppAssembly*(*)(const char*)>(il2cpp_base + 0x32412FC);
-    il2cpp_assembly_get_image = reinterpret_cast<const Il2CppImage*(*)(const Il2CppAssembly*)>(il2cpp_base + 0x325A928);
-    il2cpp_string_new = reinterpret_cast<Il2CppString*(*)(const char*)>(il2cpp_base + 0x3273B0C);
-    il2cpp_class_from_system_type = reinterpret_cast<Il2CppClass*(*)(Il2CppReflectionType*)>(il2cpp_base + 0x3263978);
+    il2cpp_class_get_field_from_name = reinterpret_cast<FieldInfo*(*)(Il2CppClass*, const char*)>(il2cpp_base + 0x3235758);
+	il2cpp_field_static_get_value = reinterpret_cast<void(*)(FieldInfo*, void*)>(il2cpp_base + 0x322CC18);
+    il2cpp_class_get_methods = reinterpret_cast<const MethodInfo*(*)(Il2CppClass*, void**)>(il2cpp_base + 0x32358DC);
+    il2cpp_class_from_type = reinterpret_cast<Il2CppClass*(*)(const Il2CppType*)>(il2cpp_base + 0x3235038);
+    il2cpp_object_new = reinterpret_cast<Il2CppObject*(*)(const Il2CppClass*)>(il2cpp_base + 0x3213488);
+    il2cpp_thread_current = reinterpret_cast<Il2CppThread*(*)()>(il2cpp_base + 0x3202560);
+    il2cpp_thread_attach = reinterpret_cast<Il2CppThread*(*)(Il2CppDomain*)>(il2cpp_base + 0x3205724);
+    il2cpp_thread_detach = reinterpret_cast<void(*)(Il2CppThread*)>(il2cpp_base + 0x32057A0);
+    il2cpp_domain_get = reinterpret_cast<Il2CppDomain*(*)()>(il2cpp_base + 0x320248C);
+    il2cpp_domain_assembly_open = reinterpret_cast<const Il2CppAssembly*(*)(const char*)>(il2cpp_base + 0x3212E40);
+    il2cpp_assembly_get_image = reinterpret_cast<const Il2CppImage*(*)(const Il2CppAssembly*)>(il2cpp_base + 0x322C46C);
+    il2cpp_string_new = reinterpret_cast<Il2CppString*(*)(const char*)>(il2cpp_base + 0x3245650);
+    il2cpp_class_from_system_type = reinterpret_cast<Il2CppClass*(*)(Il2CppReflectionType*)>(il2cpp_base + 0x32354BC);
     
     //nullpatch((il2cpp_base + 0x38DE914));
     //nullpatch((il2cpp_base + 0x38DE674));
