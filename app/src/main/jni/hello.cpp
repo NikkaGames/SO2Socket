@@ -25,7 +25,7 @@
 #include <GLES2/gl2.h>
 #include <csignal>
 #include <sys/system_properties.h>
-
+#include <random>
 #include <sys/syscall.h>
 
 #include "AES.h"
@@ -935,11 +935,12 @@ void PUpdate() {
 }
 
 float genfrand() {
-    srand((unsigned int)time(NULL));
-    float min = 0.0113812f;
-    float max = 0.0223812f;
-    return min + ((float)rand() / RAND_MAX) * (max - min);
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<float> dist(0.074859f, 0.147454f);
+    return dist(gen);
 }
+
 
 float GetDeltaTime() {
     return 0.00417f;
@@ -1441,7 +1442,7 @@ void mnthread() {
         _("System.Core"), _("Photon3Unity3D")
     };
     
-    sleep(1);
+    sleep(2);
     
     if (!il2cpp_thread_current()) il2cpp_thread_attach(il2cpp_domain_get());
     
