@@ -15,3 +15,7 @@ DO_API(const Il2CppAssembly*, il2cpp_domain_assembly_open, (const char* name));
 DO_API(const Il2CppImage*, il2cpp_assembly_get_image, (const Il2CppAssembly * assembly));
 DO_API(Il2CppString*, il2cpp_string_new, (const char* str));
 DO_API(Il2CppClass*, il2cpp_class_from_system_type, (Il2CppReflectionType * type));
+DO_API(FieldInfo*, il2cpp_class_get_fields, (Il2CppClass * klass, void* *iter));
+DO_API(const PropertyInfo*, il2cpp_class_get_properties, (Il2CppClass * klass, void* *iter));
+DO_API(Il2CppClass*, il2cpp_class_get_interfaces, (Il2CppClass * klass, void* *iter));
+DO_API(Il2CppClass*, il2cpp_class_from_name, (const Il2CppImage * image, const char* namespaze, const char *name));
