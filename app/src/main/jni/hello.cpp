@@ -1620,12 +1620,7 @@ void mnthread() {
     LOGI("DONE JOB, QUITING");
     
     //if (il2cpp_thread_current()) il2cpp_thread_detach(il2cpp_thread_current());
-    
-    /*b1.Restore();
-    b2.Restore();
-    b3.Restore();
-    b4.Restore();
-    b5.Restore();*/
+
     recurseForever(1);
     volatile int result = Bloat<1000>::compute(42);
     volatile int x = 1;

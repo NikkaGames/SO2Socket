@@ -29,6 +29,11 @@ android {
             path file('src/main/jni/Android.mk')
         }
     }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+        }
+    }
     defaultConfig.externalNativeBuild.ndkBuild.arguments("-j4", "--jobs")
 }
 
