@@ -1614,8 +1614,8 @@ void mnthread() {
     set_sbool = (void* (*)(bool))(il2cpp_base + 0x46D07DC);
     get_sint = (int (*)(void*))(il2cpp_base + 0x490ED8C);
     
-    GetPlayerHealth = (int (*)(void *))(il2cpp_base + 0x60F3360);
-    GetHealthPhoton = (int (*)(void *))(il2cpp_base + 0x4654194);
+    GetPlayerHealth = (int (*)(void *))(il2cpp_base + 0x4770988);
+    GetHealthPhoton = (int (*)(void *))(il2cpp_base + 0x478501C);
     
     LOGI("DONE JOB, QUITING");
     
