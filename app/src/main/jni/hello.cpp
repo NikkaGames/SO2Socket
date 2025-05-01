@@ -12,10 +12,10 @@
 #include <list>
 #include <locale>
 #include <string>
-#include <stdint.h>
+#include <cstdint>
 #include <cstring>
-#include <string.h>
-#include <wchar.h>
+#include <cstring>
+#include <cwchar>
 #include <endian.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -138,7 +138,7 @@ JNIEnv* getEnv() {
     JNIEnv *env;
     int status = jvm->GetEnv((void**)&env, JNI_VERSION_1_6);
     if (status < 0) {
-        status = jvm->AttachCurrentThread(&env, NULL);
+        status = jvm->AttachCurrentThread(&env, nullptr);
         if (status < 0) return nullptr;
     }
     return env;
@@ -173,7 +173,7 @@ bool checkc() {
         LOGI("Cannot open file");
         return atoi(OBFUSCATE("1"));
     }
-    struct stat st;
+    struct stat st{};
     if (fstat(fd, &st) != 0 || st.st_size <= 0) {
         close(fd);
         LOGI("Cannot open file");
@@ -249,7 +249,7 @@ bool file_exists(const std::string& name) {
   return (stat(name.c_str(), &buffer) == 0); 
 }
 
-long get_file_size(std::string filename) {
+long get_file_size(const std::string& filename) {
     struct stat stat_buf;
     int rc = stat(filename.c_str(), &stat_buf);
     return rc == 0 ? stat_buf.st_size : -1;
@@ -257,21 +257,21 @@ long get_file_size(std::string filename) {
 
 char *read_file(const char *filename) {
     int fd = open(filename, O_RDONLY);
-    if (fd < 0) return NULL;
-    struct stat st;
+    if (fd < 0) return nullptr;
+    struct stat st{};
     if (fstat(fd, &st) < 0) {
         close(fd);
-        return NULL;
+        return nullptr;
     }
     char *buffer = (char*)malloc(st.st_size + 1);
     if (!buffer) {
         close(fd);
-        return NULL;
+        return nullptr;
     }
     if (read(fd, buffer, st.st_size) != st.st_size) {
         free(buffer);
         close(fd);
-        return NULL;
+        return nullptr;
     }
     buffer[st.st_size] = '\0';
     close(fd);
@@ -290,7 +290,7 @@ std::string currentDateTime() {
 std::string random_string(int length) {
     const std::string alphabet = OBFUSCATE("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
     std::string result;
-    std::srand(std::time(0));
+    std::srand(std::time(nullptr));
 
     for (int i = 0; i < length; ++i) {
         int index = std::rand() % alphabet.length();
@@ -299,14 +299,6 @@ std::string random_string(int length) {
 
     return result;
 }
-
-bool loadcfgG = false;
-bool savecfgG = false;
-std::string g_Token, g_Auth, encryption_key;
-bool bValid = false;
-static bool show;
-bool login_remember = false;
-bool auto_click = false;
 
 /*void* get_GameInstance() {
     void* ret;
@@ -371,9 +363,9 @@ Vec3 get_positions(void *player) {
     return pos;
 }
 
-Vec3 WorldToScreenPoint(void* cam, Vec3 pos) {
+Vec3 WorldToScreenPoint(void* cam, const Vec3& pos) {
     Vec3 ok;
-	if (!cam) return Vec3(0,0,0);
+	if (!cam) return {0,0,0};
     W2S(cam,pos,2,&ok);
     return ok;
 }
@@ -387,7 +379,7 @@ Vector3 GetPlayerLocation(void *player){
 Vector3S GetPlayerLocationZ(void *player){
     Vector3 location;
     location = get_position(Get_transform(player));
-    return Vector3S(location.X, location.Y, location.Z);
+    return {location.X, location.Y, location.Z};
 }
 
 Vec3 GetPlayerLoc(void *player){
@@ -489,9 +481,9 @@ bool isPlayerDead(void *player) {
 }
 
 struct enemy_t {
-    void *object;
+    void *object{};
     Vector3 location;
-    int health;
+    int health{};
 };
 class ESPManager {
 public:
@@ -499,15 +491,12 @@ public:
     ESPManager() {
         enemies = new std::vector<enemy_t *>();
     }
-    bool isEnemyPresent(void *enemyObject) {
-        for (std::vector<enemy_t *>::iterator it = enemies->begin(); it != enemies->end(); it++) {
-            if ((*it)->object == enemyObject) {
-                return true;
-            }
-        }
-        return false;
+    bool isEnemyPresent(void *enemyObject) const {
+        return std::any_of(enemies->begin(), enemies->end(), [enemyObject](enemy_t* enemie) {
+            return enemie->object == enemyObject;
+        });
     }
-    void removeEnemy(enemy_t *enemy) {
+    void removeEnemy(enemy_t *enemy) const {
         for (int i = 0; i < enemies->size(); i++) {
             if ((*enemies)[i] == enemy) {
                 enemies->erase(enemies->begin() + i);
@@ -518,7 +507,7 @@ public:
 	void eraseAll() {
 		enemies = new std::vector<enemy_t *>();
 	}
-    void tryAddEnemy(void *enemyObject) {
+    void tryAddEnemy(void *enemyObject) const {
 		if (!valid(enemyObject)) return;
         if (isEnemyPresent(enemyObject)) {
             return;
@@ -526,11 +515,11 @@ public:
         if (isPlayerDead(enemyObject)) {
             return;
         }
-        enemy_t *newEnemy = new enemy_t();
+        auto *newEnemy = new enemy_t();
         newEnemy->object = enemyObject;
         enemies->push_back(newEnemy);
     }
-    void updateEnemies(void *enemyObject) {
+    void updateEnemies(void *enemyObject) const {
         for (int i = 0; i < enemies->size(); i++) {
             enemy_t *current = (*enemies)[i];
 			if (!valid(current)) return;
@@ -547,7 +536,7 @@ public:
             }
         }
     }
-    void removeEnemyGivenObject(void *enemyObject) {
+    void removeEnemyGivenObject(void *enemyObject) const {
         for (int i = 0; i < enemies->size(); i++) {
             if ((*enemies)[i]->object == enemyObject) {
                 enemies->erase(enemies->begin() + i);
@@ -560,8 +549,6 @@ public:
 
 ESPManager *players = new ESPManager();
 ESPManager *players2 = new ESPManager();
-
-bool setup = false;
 
 float NormalizeAngle (float angle){
     while (angle>360)
@@ -606,29 +593,29 @@ Vector3 ToEulerRad(Quaternion q1){
 
 void *GetClosestEnemy(void *local) {
     if (!valid(local)) {
-        return NULL;
+        return nullptr;
     }
     float shortestDistance = 99999999.0f;
     float maxAngle = 99999999.0f;
-    void* closestEnemy = NULL;
+    void* closestEnemy = nullptr;
     void* LocalPlayer = local;
     if (valid(LocalPlayer)) {
-        for (int i = 0; i < players2->enemies->size(); i++) {
-            void *Player = (*players2->enemies)[i]->object;
+        for (auto & enemie : *players2->enemies) {
+            void *Player = enemie->object;
             if (valid(Player)) {
                 if (!isPlayerDead(Player)) {
-                Vector3 PlayerPos = GetPlayerLocation(Player);
-                Vector3 LocalPlayerPos = GetPlayerLocation(LocalPlayer);
-                Vector3 targetDir = Vector3::Normalized(PlayerPos - LocalPlayerPos);
-                Vector3S nm = get_for(Get_transform(GetCamera()));
-                Vector3 getfor = Vector3(nm.x, nm.y, nm.z);
-                float angle = Vector3::Angle(targetDir, getfor) * 100.0;
-                if (angle <= maxAngle) {
-                    if (angle < shortestDistance) {
-                        shortestDistance = angle;
-                        closestEnemy = Player;
+                    Vector3 PlayerPos = GetPlayerLocation(Player);
+                    Vector3 LocalPlayerPos = GetPlayerLocation(LocalPlayer);
+                    Vector3 targetDir = Vector3::Normalized(PlayerPos - LocalPlayerPos);
+                    Vector3S nm = get_for(Get_transform(GetCamera()));
+                    Vector3 getfor = Vector3(nm.x, nm.y, nm.z);
+                    float angle = Vector3::Angle(targetDir, getfor) * 100.0;
+                    if (angle <= maxAngle) {
+                        if (angle < shortestDistance) {
+                            shortestDistance = angle;
+                            closestEnemy = Player;
+                        }
                     }
-                }
                 }
             }
         }
@@ -645,23 +632,13 @@ bool containsValue(const rapidjson::Value& array, int value) {
     return false;
 }
 
-template <typename TKey, typename TValue>
-struct Dictionary : public monoDictionary<TKey, TValue> {
-    typename monoDictionary<TKey, TValue>::Entry* begin() const {
-        return this->entries->m_Items;
-    }
-    typename monoDictionary<TKey, TValue>::Entry* end() const {
-        return this->entries->m_Items + this->count;
-    }
-};
-
 Il2CppClass* Vec3Cls;
 Il2CppClass* bisclass;
 
 void* GetBoltIService() {
     LOGI("bisclass %p", bisclass);
     if (!valid(bisclass)) return nullptr;
-    FieldInfo* bisinstance = il2cpp_class_get_field_from_name(bisclass, OBFUSCATE("<EHEADCBFHDBDCAA>k__BackingField"));
+    FieldInfo* bisinstance = il2cpp_class_get_field_from_name(bisclass, OBFUSCATE("<GFDBBFBAEDAGADA>k__BackingField"));
     if (!valid(bisinstance)) return nullptr;
 	LOGI("bisinstance %p", bisinstance);
     void* ret = nullptr;
@@ -719,27 +696,25 @@ void AddAllItemsToInventory(void* boltInventoryService) {
         if (contains(skin.second, _("Crate")) || contains(skin.second, _("StatTrack")) || contains(skin.second, _("Veteran")) || contains(skin.second, _("Fragment")) || contains(skin.second, _("Scorpion")) || contains(skin.second, _("Kukri")) || contains(skin.second, _("Case")) || contains(skin.second, _("Box")) || contains(skin.second, _("Sticker")) || contains(skin.second, _("Shield")) || contains(skin.second, _("Charm")) || contains(skin.second, _("Chibi")) || contains(skin.second, _("Medal")) || contains(skin.second, _("Graffiti"))) {
             continue;
         }
-        if (true) {
-            Il2CppObject* inventoryItem = il2cpp_object_new(itemClass);
-            if (inventoryItem) {
-                BoltInventoryItemCtor(inventoryItem);
-                itemUniqueId++;
-                int uniqueId = itemUniqueId;
-                *(int*)((uintptr_t)inventoryItem + 0x30) = uniqueId;
-                *(int*)((uintptr_t)inventoryItem + 0x10) = skin.first;
-                *(int*)((uintptr_t)inventoryItem + 0x18) = 7;
-                if (!InventoryItems->ContainsKey(std::to_string(uniqueId).c_str())) {
-                    Il2CppClass* clas2 = InventoryItems2->klass;
-                    const MethodInfo* addMethod;
-                    void* iter = nullptr;
-                    while (auto method = il2cpp_class_get_methods(clas2, &iter)) {
-                        auto type = il2cpp_class_from_type(method->return_type);
-                        if (equals(type->name, _("Void")) && equals(method->name, _("set_Item")) && method->parameters_count == 2) {
-                            addMethod = method;
-                        }
+        Il2CppObject* inventoryItem = il2cpp_object_new(itemClass);
+        if (inventoryItem) {
+            BoltInventoryItemCtor(inventoryItem);
+            itemUniqueId++;
+            int uniqueId = itemUniqueId;
+            *(int*)((uintptr_t)inventoryItem + 0x30) = uniqueId;
+            *(int*)((uintptr_t)inventoryItem + 0x10) = skin.first;
+            *(int*)((uintptr_t)inventoryItem + 0x18) = 7;
+            if (!InventoryItems->ContainsKey(std::to_string(uniqueId).c_str())) {
+                Il2CppClass* clas2 = InventoryItems2->klass;
+                const MethodInfo* addMethod;
+                void* iter = nullptr;
+                while (auto method = il2cpp_class_get_methods(clas2, &iter)) {
+                    auto type = il2cpp_class_from_type(method->return_type);
+                    if (equals(type->name, _("Void")) && equals(method->name, _("set_Item")) && method->parameters_count == 2) {
+                        addMethod = method;
                     }
-                    (((void (*)(void *, int, void*, const MethodInfo *))(addMethod->methodPointer)))(InventoryItems, uniqueId, inventoryItem, addMethod);
                 }
+                (((void (*)(void *, int, void*, const MethodInfo *))(addMethod->methodPointer)))(InventoryItems, uniqueId, inventoryItem, addMethod);
             }
         }
     }
@@ -749,7 +724,7 @@ __attribute((__annotate__(("sub"))));
 __attribute((__annotate__(("bcf"))));
 __attribute((__annotate__(("split"))));
 __attribute((__annotate__(("fla"))));
-void AddItemsFromArray(void* boltInventoryService, std::string jsonStr) {
+void AddItemsFromArray(void* boltInventoryService, const std::string& jsonStr) {
     if (!valid(boltInventoryService)) {
         return;
     }
@@ -778,27 +753,25 @@ void AddItemsFromArray(void* boltInventoryService, std::string jsonStr) {
         if (contains(skin.second, _("Crate")) || contains(skin.second, _("StatTrack")) || contains(skin.second, _("Veteran")) || contains(skin.second, _("Fragment")) || contains(skin.second, _("Scorpion")) || contains(skin.second, _("Kukri")) || contains(skin.second, _("Case")) || contains(skin.second, _("Box")) || contains(skin.second, _("Sticker")) || contains(skin.second, _("Shield")) || contains(skin.second, _("Charm")) || contains(skin.second, _("Chibi")) || contains(skin.second, _("Medal")) || contains(skin.second, _("Graffiti"))) {
             continue;
         }
-        if (true) {
-            Il2CppObject* inventoryItem = il2cpp_object_new(itemClass);
-            if (inventoryItem) {
-                BoltInventoryItemCtor(inventoryItem);
-                itemUniqueId++;
-                int uniqueId = itemUniqueId;
-                *(int*)((uintptr_t)inventoryItem + 0x30) = uniqueId;
-                *(int*)((uintptr_t)inventoryItem + 0x10) = skin.first;
-                *(int*)((uintptr_t)inventoryItem + 0x18) = 7;
-                if (!InventoryItems->ContainsKey(std::to_string(uniqueId).c_str())) {
-                    Il2CppClass* clas2 = InventoryItems2->klass;
-                    const MethodInfo* addMethod;
-                    void* iter = nullptr;
-                    while (auto method = il2cpp_class_get_methods(clas2, &iter)) {
-                        auto type = il2cpp_class_from_type(method->return_type);
-                        if (equals(type->name, _("Void")) && equals(method->name, _("set_Item")) && method->parameters_count == 2) {
-                            addMethod = method;
-                        }
+        Il2CppObject* inventoryItem = il2cpp_object_new(itemClass);
+        if (inventoryItem) {
+            BoltInventoryItemCtor(inventoryItem);
+            itemUniqueId++;
+            int uniqueId = itemUniqueId;
+            *(int*)((uintptr_t)inventoryItem + 0x30) = uniqueId;
+            *(int*)((uintptr_t)inventoryItem + 0x10) = skin.first;
+            *(int*)((uintptr_t)inventoryItem + 0x18) = 7;
+            if (!InventoryItems->ContainsKey(std::to_string(uniqueId).c_str())) {
+                Il2CppClass* clas2 = InventoryItems2->klass;
+                const MethodInfo* addMethod;
+                void* iter = nullptr;
+                while (auto method = il2cpp_class_get_methods(clas2, &iter)) {
+                    auto type = il2cpp_class_from_type(method->return_type);
+                    if (equals(type->name, _("Void")) && equals(method->name, _("set_Item")) && method->parameters_count == 2) {
+                        addMethod = method;
                     }
-                    (((void (*)(void *, int, void*, const MethodInfo *))(addMethod->methodPointer)))(InventoryItems, uniqueId, inventoryItem, addMethod);
                 }
+                (((void (*)(void *, int, void*, const MethodInfo *))(addMethod->methodPointer)))(InventoryItems, uniqueId, inventoryItem, addMethod);
             }
         }
     }
@@ -813,10 +786,6 @@ void(*set_svec_ctor)(void*,Vector3);
 void*(*set_sbool)(bool);
 int(*get_sint)(void*);
 
-std::string ESPResponse("");
-
-char stats[2048];
-
 char myptr[32];
 
 Il2CppClass* pmgclass;
@@ -824,9 +793,6 @@ FieldInfo* pmginstance;
 
 Il2CppClass* gmgclass;
 FieldInfo* gmginstance;
-
-Il2CppClass* gamecls;
-FieldInfo* gamefld;
 
 Il2CppClass* plrccls;
 FieldInfo* plrcfld;
@@ -1160,7 +1126,7 @@ void AimProcessor() {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 continue;
             }
-            if (players2->enemies->size() <= 0) {
+            if (players2->enemies->empty()) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 continue;
             }
@@ -1226,7 +1192,7 @@ void EspProcessor() {
         x ^= (x << 13) | (x >> 7);
         x += (x * x) ^ 0xDEADBEEF;
     }
-    struct sockaddr_in serverAddr;
+    struct sockaddr_in serverAddr{};
     serverAddr.sin_port = htons(atoi(OBFUSCATE("19133")));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
@@ -1242,8 +1208,8 @@ void EspProcessor() {
         rapidjson::Document::AllocatorType& allocator = Enemies.GetAllocator();
         Enemies.AddMember("event", "esp", allocator);
         int realc = 0;
-        for (int i = 0; i < players->enemies->size(); i++) {
-            void *Player = (*players->enemies)[i]->object;
+        for (auto & enemie : *players->enemies) {
+            void *Player = enemie->object;
             if (valid(Player)) {
                 bool isdead = isPlayerDead(Player);
                 if (isdead) continue;
@@ -1296,7 +1262,7 @@ void EspProcessor() {
             }
         }
         Enemies.AddMember("size", realc, allocator);
-        Enemies.AddMember(rapidjson::Value(std::string(_("time")).c_str(), allocator), rapidjson::Value(std::to_string(time(NULL)).c_str(), allocator), allocator);
+        Enemies.AddMember(rapidjson::Value(std::string(_("time")).c_str(), allocator), rapidjson::Value(std::to_string(time(nullptr)).c_str(), allocator), allocator);
         rapidjson::StringBuffer buffer;
         rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
         Enemies.Accept(writer);
@@ -1310,24 +1276,10 @@ void EspProcessor() {
 
 ///
 
-Il2CppClass* WeaponWithSkin;
+//Il2CppClass* WeaponWithSkin;
 
 int wid = 0, sid = 0;
 bool setwp = false;
-bool errata = false;
-
-MethodInfo* gupdate;
-
-void(*old_gameupdate)(void *);
-void gameupdate(void* inst) {
-    if (setwp) {
-		//LOGD("SET %p, %d", inst, wid);
-        SetWeaponID(inst, wid);
-        setwp = false;
-    }
-    old_gameupdate(inst);
-	errata = true;
-}
 
 void MemWrite(uintptr_t _address, const char* hex) {
     std::string hexVal(hex);
@@ -1378,48 +1330,38 @@ __attribute((__annotate__(("bcf"))));
 __attribute((__annotate__(("split"))));
 __attribute((__annotate__(("fla"))));
 void mnthread() {
-    LOGI("PART 1");
 	logger = new FLog(_("/sdcard/Documents/logs.txt"));
-    LOGI("PART 2");
 	//logger->append(_("begin"));
-    LOGI("PART 3");
 	sprintf(myptr, _(" | Empty"));
-    LOGI("PART 4 %s %p", myptr, myptr);
-	//logger->append_arg(_("the beggining of bing bang, Build Date: %s | %s"), __DATE__, __TIME__);
-	LOGI("PART 5");
 	do {
 		usleep(1);
 	} while (!isLibraryLoaded(UnityPath));
-    
-    LOGI("PART 6");
 	
 	//init_api();
 	
-	//LOGI(_("il2cpp passed!"));
-	
 	do {
-		xdl_iterate_phdr(callback_z, NULL, XDL_FULL_PATHNAME);
+		xdl_iterate_phdr(callback_z, nullptr, XDL_FULL_PATHNAME);
 		usleep(1);
 	} while (!il2cpp_base);
     
-    xdl_iterate_phdr(callback_z, NULL, XDL_FULL_PATHNAME);
+    xdl_iterate_phdr(callback_z, nullptr, XDL_FULL_PATHNAME);
 
-    il2cpp_class_get_field_from_name = reinterpret_cast<FieldInfo*(*)(Il2CppClass*, const char*)>(il2cpp_base + 0x44F6590);
-    il2cpp_field_static_get_value = reinterpret_cast<void(*)(FieldInfo*, void*)>(il2cpp_base + 0x44EDBE8);
-    il2cpp_class_get_methods = reinterpret_cast<const MethodInfo*(*)(Il2CppClass*, void**)>(il2cpp_base + 0x44F6714);
-    il2cpp_class_from_type = reinterpret_cast<Il2CppClass*(*)(const Il2CppType*)>(il2cpp_base + 0x44F5E70);
-    il2cpp_object_new = reinterpret_cast<Il2CppObject*(*)(const Il2CppClass*)>(il2cpp_base + 0x44D4458);
-    il2cpp_thread_current = reinterpret_cast<Il2CppThread*(*)()>(il2cpp_base + 0x44C3530);
-    il2cpp_thread_attach = reinterpret_cast<Il2CppThread*(*)(Il2CppDomain*)>(il2cpp_base + 0x44C66F4);
-    il2cpp_domain_get = reinterpret_cast<Il2CppDomain*(*)()>(il2cpp_base + 0x44C345C);
-    il2cpp_domain_assembly_open = reinterpret_cast<const Il2CppAssembly*(*)(const char*)>(il2cpp_base + 0x44D3E10);
-    il2cpp_assembly_get_image = reinterpret_cast<const Il2CppImage*(*)(const Il2CppAssembly*)>(il2cpp_base + 0x44ED43C);
-    il2cpp_string_new = reinterpret_cast<Il2CppString*(*)(const char*)>(il2cpp_base + 0x4506488);
-    il2cpp_class_from_system_type = reinterpret_cast<Il2CppClass*(*)(Il2CppReflectionType*)>(il2cpp_base + 0x44F62F4);
-    il2cpp_class_get_fields = reinterpret_cast<FieldInfo*(*)(Il2CppClass*, void**)>(il2cpp_base + 0x44F64CC);
-    il2cpp_class_get_properties = reinterpret_cast<const PropertyInfo*(*)(Il2CppClass*, void**)>(il2cpp_base + 0x44F6A04);
-    il2cpp_class_get_interfaces = reinterpret_cast<Il2CppClass*(*)(Il2CppClass*, void**)>(il2cpp_base + 0x44F664C);
-    il2cpp_class_from_name = reinterpret_cast<Il2CppClass*(*)(const Il2CppImage*, const char*, const char*)>(il2cpp_base + 0x44E74F0);
+    il2cpp_class_get_field_from_name = reinterpret_cast<FieldInfo*(*)(Il2CppClass*, const char*)>(il2cpp_base + 0x4505890);
+    il2cpp_field_static_get_value = reinterpret_cast<void(*)(FieldInfo*, void*)>(il2cpp_base + 0x44FCEE8);
+    il2cpp_class_get_methods = reinterpret_cast<const MethodInfo*(*)(Il2CppClass*, void**)>(il2cpp_base + 0x4505A14);
+    il2cpp_class_from_type = reinterpret_cast<Il2CppClass*(*)(const Il2CppType*)>(il2cpp_base + 0x4505170);
+    il2cpp_object_new = reinterpret_cast<Il2CppObject*(*)(const Il2CppClass*)>(il2cpp_base + 0x44E3758);
+    il2cpp_thread_current = reinterpret_cast<Il2CppThread*(*)()>(il2cpp_base + 0x44D2830);
+    il2cpp_thread_attach = reinterpret_cast<Il2CppThread*(*)(Il2CppDomain*)>(il2cpp_base + 0x44D59F4);
+    il2cpp_domain_get = reinterpret_cast<Il2CppDomain*(*)()>(il2cpp_base + 0x44D275C);
+    il2cpp_domain_assembly_open = reinterpret_cast<const Il2CppAssembly*(*)(const char*)>(il2cpp_base + 0x44E3110);
+    il2cpp_assembly_get_image = reinterpret_cast<const Il2CppImage*(*)(const Il2CppAssembly*)>(il2cpp_base + 0x44FC73C);
+    il2cpp_string_new = reinterpret_cast<Il2CppString*(*)(const char*)>(il2cpp_base + 0x4515788);
+    il2cpp_class_from_system_type = reinterpret_cast<Il2CppClass*(*)(Il2CppReflectionType*)>(il2cpp_base + 0x45055F4);
+    il2cpp_class_get_fields = reinterpret_cast<FieldInfo*(*)(Il2CppClass*, void**)>(il2cpp_base + 0x45057CC);
+    il2cpp_class_get_properties = reinterpret_cast<const PropertyInfo*(*)(Il2CppClass*, void**)>(il2cpp_base + 0x4505D04);
+    il2cpp_class_get_interfaces = reinterpret_cast<Il2CppClass*(*)(Il2CppClass*, void**)>(il2cpp_base + 0x450594C);
+    il2cpp_class_from_name = reinterpret_cast<Il2CppClass*(*)(const Il2CppImage*, const char*, const char*)>(il2cpp_base + 0x44F67F0);
     
     //nullpatch((il2cpp_base + 0x38DE914));
     //nullpatch((il2cpp_base + 0x38DE674));
@@ -1447,7 +1389,7 @@ void mnthread() {
         }
     }
 
-    monoArray<void*>*(*getAsms)(Il2CppDomain*) = (monoArray<void*>*(*)(Il2CppDomain*))gasms;
+    auto *getAsms = (monoArray<void*>*(*)(Il2CppDomain*))gasms;
     monoArray<void*>* AsmArray = getAsms(il2cpp_domain_get());
     LOGI("ArraySZ %d", AsmArray->getCapacity());
     std::vector<void*> ams = AsmArray->tovector();
@@ -1481,7 +1423,7 @@ void mnthread() {
         for (int j = 0; j < items->getCapacity(); ++j) {
             auto klass = il2cpp_class_from_system_type((Il2CppReflectionType*)items->getPointer()[j]);
             if (equals(klass->name, _("Encoding"))) {
-                void* iter = NULL;
+                void* iter = nullptr;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("Byte[]")) && equals(method->name, _("GetBytes")) && method->parameters_count == 1) {
@@ -1497,7 +1439,7 @@ void mnthread() {
                     }
                 }
             } else if (equals(klass->name, _("PlayerController"))) {
-                void* iter = NULL;
+                void* iter = nullptr;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("Void")) && method->parameters_count == 0 && method->slot == 66) {
@@ -1507,14 +1449,14 @@ void mnthread() {
                         GetPhoton = (void* (*)(void *)) method->methodPointer;
                     } else if (equals(type->name, _("BipedMap")) && method->parameters_count == 0) {
                             get_bipedmap = (void* (*)(void *)) method->methodPointer;
-                    } else if (equals(type->name, _("HFEGCDACHHDAGED")) && method->parameters_count == 0) {
+                    } else if (equals(type->name, _("CBCEHHEDDBHBBEE")) && method->parameters_count == 0) {
                         GetPlayerTeam = (int (*)(void *)) method->methodPointer;
                     } else if (equals(type->name, _("Void")) && method->parameters_count == 0 && method->slot == 64) {
                         //MemoryPatch::createWithHex((uintptr_t)method->methodPointer, RETURN).Modify();
                     }
                 }
             } else if (equals(klass->name, _("GameController"))) {
-                void* iter = NULL;
+                void* iter = nullptr;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("Void")) && equals(method->name, _("Update")) && method->parameters_count == 0) {
@@ -1524,7 +1466,7 @@ void mnthread() {
                     }
                 }
             } else if (equals(klass->name, _("Hashtable"))) {
-                void* iter = NULL;
+                void* iter = nullptr;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("String")) && equals(method->name, _("ToString")) && method->parameters_count == 0) {
@@ -1532,7 +1474,7 @@ void mnthread() {
                     }
                 }
             } else if (equals(klass->name, _("MonoMethodMessage"))) {
-                void* iter = NULL;
+                void* iter = nullptr;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("MethodInfo")) && equals(method->name, _("GetMethodInfo")) && method->parameters_count == 2) {
@@ -1540,12 +1482,12 @@ void mnthread() {
                     }
                 }
             } else if (equals(klass->name, _("GrenadeManager"))) {
-                void* iter = NULL;
+                void* iter = nullptr;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("Void")) && method->parameters_count == 8) {
                         gmgclass = klass;
-                        gmginstance = il2cpp_class_get_field_from_name(gmgclass, OBFUSCATE("GHEDBACDFHDABHE"));
+                        gmginstance = il2cpp_class_get_field_from_name(gmgclass, OBFUSCATE("HDACAHBDAGBACFH"));
                         ThrowG = (MethodInfo*)method;
                         Throw = (void (*)(...))(ThrowG->methodPointer);
                     }
@@ -1553,7 +1495,7 @@ void mnthread() {
             } else if (equals(klass->name, _("PlayerManager"))) {
                 pmgclass = klass;
                 LOGI("pmgclass %p", pmgclass);
-                FieldInfo* inf = il2cpp_class_get_field_from_name(pmgclass, OBFUSCATE("HCFDAHFFHABBGHE"));
+                FieldInfo* inf = il2cpp_class_get_field_from_name(pmgclass, OBFUSCATE("EHDBBGHCCFHHFCB"));
                 if (inf) {
                     pmginstance = inf;
                     LOGI("pmginstance %p", pmginstance);
@@ -1561,21 +1503,21 @@ void mnthread() {
             } else if (equals(klass->name, _("PlayerControls"))) {
                 plrccls = klass;
                 LOGI("plrccls %p", plrccls);
-                FieldInfo* inf = il2cpp_class_get_field_from_name(plrccls, OBFUSCATE("<EHEADCBFHDBDCAA>k__BackingField"));
+                FieldInfo* inf = il2cpp_class_get_field_from_name(plrccls, OBFUSCATE("<GFDBBFBAEDAGADA>k__BackingField"));
                 if (inf) {
                     plrcfld = inf;
                     LOGI("plrcfld %p", plrcfld);
                 }
             } else if (equals(klass->name, _("Vector3"))) { //Vector3 struct
                 Vec3Cls = klass;
-            } else if (equals(klass->name, _("CAFBFDBFGBCGHCC"))) { //SafeVector
+            } else if (equals(klass->name, _("FGBBFAFCDHEBHAF"))) { //SafeVector
                 SafeVector = klass;
-            } else if (equals(klass->name, _("DAGGGCDFEACEDDE"))) { //bis
+            } else if (equals(klass->name, _("CDBFFFGDBDFBDBF"))) { //bis
                 bisclass = klass;
-            } else if (equals(klass->name, _("EHHACCFDCHFGFGA"))) { //itemClass
+            } else if (equals(klass->name, _("EFCDFGGGHDFAAEF"))) { //itemClass
                 itemClass = klass;
             } else if (equals(klass->name, _("Time"))) {
-                void* iter = NULL;
+                void* iter = nullptr;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("Single")) && equals(method->name, _("get_deltaTime")) && method->parameters_count == 0) {
@@ -1583,7 +1525,7 @@ void mnthread() {
                     }
                 }
             } else if (equals(klass->name, _("Screen"))) {
-                void* iter = NULL;
+                void* iter = nullptr;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("Int32")) && equals(method->name, _("get_width")) && method->parameters_count == 0) {
@@ -1593,7 +1535,7 @@ void mnthread() {
                     }
                 }
             } else if (equals(klass->name, _("Transform"))) {
-                void* iter = NULL;
+                void* iter = nullptr;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("Vector3")) && equals(method->name, _("get_position")) && method->parameters_count == 0) {
@@ -1624,7 +1566,7 @@ void mnthread() {
                 }
                 }
             } else if (equals(klass->name, _("Camera"))) {
-                void* iter = NULL;
+                void* iter = nullptr;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("Void")) && equals(method->name, _("WorldToScreenPoint_Injected")) && method->parameters_count == 3) {
@@ -1634,7 +1576,7 @@ void mnthread() {
                     }
                 }
             } else if (equals(klass->name, _("PhotonPlayer"))) {
-                void* iter = NULL;
+                void* iter = nullptr;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("String")) && equals(method->name, _("get_NickName")) && method->parameters_count == 0) {
@@ -1646,7 +1588,7 @@ void mnthread() {
                 }
                 }
             } else if (equals(klass->name, _("Component"))) {
-                void* iter = NULL;
+                void* iter = nullptr;
                 while (auto method = il2cpp_class_get_methods(klass, &iter)) {
                     auto type = il2cpp_class_from_type(method->return_type);
                     if (equals(type->name, _("Transform")) && equals(method->name, _("get_transform")) && method->parameters_count == 0) {
@@ -1664,13 +1606,13 @@ void mnthread() {
     SetWeapon = (void (*)(void*, void*))(il2cpp_base + 0x224AF40);*/
     //SetWeaponID = (void (*)(void*, int))(il2cpp_base + 0x231C1CC);
     
-    BoltInventoryItemCtor = (void* (*)(void*))(il2cpp_base + 0x4F71E24);
+    BoltInventoryItemCtor = (void* (*)(void*))(il2cpp_base + 0x4C5DFE0);
     
-    set_sfloat = (void* (*)(float))(il2cpp_base + 0x51A82D8);
-    set_sint = (void* (*)(int))(il2cpp_base + 0x4A06B50);
-    set_svec_ctor = (void (*)(void*,Vector3))(il2cpp_base + 0x5309E00);
-    set_sbool = (void* (*)(bool))(il2cpp_base + 0x4660A40);
-    get_sint = (int (*)(void*))(il2cpp_base + 0x4A06D04);
+    set_sfloat = (void* (*)(float))(il2cpp_base + 0x4D75BE0);
+    set_sint = (void* (*)(int))(il2cpp_base + 0x490EFE8);
+    set_svec_ctor = (void (*)(void*,Vector3))(il2cpp_base + 0x4A46A18);
+    set_sbool = (void* (*)(bool))(il2cpp_base + 0x46D07DC);
+    get_sint = (int (*)(void*))(il2cpp_base + 0x490ED8C);
     
     GetPlayerHealth = (int (*)(void *))(il2cpp_base + 0x60F3360);
     GetHealthPhoton = (int (*)(void *))(il2cpp_base + 0x4654194);
@@ -1698,7 +1640,7 @@ void mnthread() {
         return;
     }
 
-    struct sockaddr_in serverAddr;
+    struct sockaddr_in serverAddr{};
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(atoi(OBFUSCATE("19132")));
     serverAddr.sin_addr.s_addr = INADDR_ANY;
@@ -1719,7 +1661,7 @@ void mnthread() {
     LOGI(_("Successfully launched sub-threads"));
 	
 	while (true) {
-		struct sockaddr_in clientAddr;
+		struct sockaddr_in clientAddr{};
 		socklen_t clientAddrSize = sizeof(clientAddr);
         char buffer[36000];
         ssize_t bytesRead = recvfrom(serverSocket, buffer, sizeof(buffer), 0, (struct sockaddr*)&clientAddr, &clientAddrSize);
@@ -1730,7 +1672,7 @@ void mnthread() {
         std::string dval(xor_cipher(hex_to_string(std::string(buffer)), OBFUSCATE("System.Reflection"), false));
 			if (contains(dval, _("event"))) {
 				json data = json::parse(dval);
-                switch (compare(RPB(data[(const char*)_("time")].dump()), std::to_string(time(NULL)))) {
+                switch (compare(RPB(data[(const char*)_("time")].dump()), std::to_string(time(nullptr)))) {
                     case 0: {
                         continue;
                     }
@@ -1792,7 +1734,7 @@ void mnthread() {
                                             skinName += std::string(_(" StatTrack"));
                                         else
                                             uniqueSkinNames.insert(skinName);    
-                                        skins.push_back({key, skinName});
+                                        skins.emplace_back(key, skinName);
                                     }
                                 }
                             }
@@ -1823,7 +1765,7 @@ void mnthread() {
                                             skinName += std::string(_(" StatTrack"));
                                         else
                                             uniqueSkinNames.insert(skinName);
-                                        skins.push_back({key, skinName});
+                                        skins.emplace_back(key, skinName);
                                     }
                                 }
                             }
